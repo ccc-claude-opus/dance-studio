@@ -460,7 +460,7 @@ function makeDancer(role){
   }
   add(sphereG,mSkin,{head:true});
   add(sphereG,mTop,{joint:'chest',rad:0.12});
-  if(p.skirt){const sk=new THREE.MeshStandardMaterial({color:p.skirt,roughness:.55,side:THREE.DoubleSide});add(new THREE.CylinderGeometry(0.62,1,1,28,1,true),sk,{skirt:true});}
+  if(p.skirt){const sk=new THREE.MeshStandardMaterial({color:p.skirt,roughness:.55,side:THREE.DoubleSide});add(new THREE.CylinderGeometry(0.74,1,1,28,1,true),sk,{skirt:true});}
   world.add(g);return {group:g,parts,role,ghost:false};
 }
 const GHOST={lead:new THREE.MeshBasicMaterial({color:0x9db0e6,transparent:true,opacity:0.42,depthWrite:false}),
@@ -492,7 +492,7 @@ function poseDancer(d,f){const G=d.ghost,TR=0.013;
       _side.copy(_sh).addScaledVector(_up,-_sh.dot(_up)).normalize();_fwd.crossVectors(_side,_up);
       const hh=Math.max(0.1,Math.min(0.14,L*0.62));_a.copy(h).addScaledVector(_up,hh*0.85).addScaledVector(_fwd,0.012);
       const hs=G?0.75:1;_m.makeBasis(_side.multiplyScalar(0.085*hs),_tmp.copy(_up).multiplyScalar(hh*hs),_fwd.multiplyScalar(0.098*hs));_m.setPosition(_a);m.matrix.copy(_m);}
-    else if(pt.skirt&&!G){_up.subVectors(P[J.spine],P[J.hips]).normalize();_a.copy(P[J.spine]).addScaledVector(_up,0.02);_b.copy(_a).addScaledVector(_up,-0.58);setSeg(m,_b,_a,0.3,0.27,_hp);}
+    else if(pt.skirt&&!G){_up.subVectors(P[J.spine],P[J.hips]).normalize();_a.copy(P[J.spine]).addScaledVector(_up,0.02);_b.copy(_a).addScaledVector(_up,-0.27);setSeg(m,_b,_a,0.225,0.205,_hp);/* mini skirt: stops at the upper thigh so the legs stay visible */}
   }
 }
 
