@@ -473,7 +473,7 @@ const GHOST={lead:new THREE.MeshBasicMaterial({color:0x9db0e6,transparent:true,o
   solo:new THREE.MeshBasicMaterial({color:0xcccccc,transparent:true,opacity:0.42,depthWrite:false})};
 /* see-through dancers: every body part is drawn semi-transparent, so a partner's limbs behind it stay visible */
 let SEE=true;try{SEE=localStorage.getItem('see-through')!=='0';}catch(e){}
-function seeMat(m){if(m.userData.see===SEE)return;m.userData.see=SEE;m.transparent=SEE;m.opacity=SEE?0.72:1;m.needsUpdate=true;}
+function seeMat(m){if(m.userData.see===SEE)return;m.userData.see=SEE;m.transparent=SEE;m.opacity=SEE?0.5:1;m.needsUpdate=true;}
 function seeRoot(root){root.traverse(o=>{if(o.isMesh)[].concat(o.material).forEach(seeMat);});}
 function applySeeThrough(){
   for(const d of S.dancers){for(const pt of d.parts)seeMat(pt.mesh.userData.mat);if(d.char)seeRoot(d.char.root);}
