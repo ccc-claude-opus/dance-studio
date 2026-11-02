@@ -429,7 +429,8 @@ const world=new THREE.Group();scene.add(world);
 
 /* ---------- mannequin driven by real joint positions ---------- */
 const PAL={
-  lead:{top:0x2c3550,arm:0x2c3550,leg:0x1c2232,shoe:0x111111,skin:0xd9b08c,skirt:null},
+  /* bright, contrasting parts so arms read against the torso and legs against the dark floor */
+  lead:{top:0x16b9a0,arm:0xffcf33,leg:0x2f6ae8,shoe:0xf2f2f2,skin:0xd9b08c,skirt:null},
   follow:{top:0xa8283d,arm:0xd9b08c,leg:0xd9b08c,shoe:0x5a1220,skin:0xe0b896,skirt:0xb52d45},
   solo:{top:0x6b6f78,arm:0xcfa27f,leg:0x22242a,shoe:0x1a1a1a,skin:0xcfa27f,skirt:null}
 };
