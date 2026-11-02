@@ -474,7 +474,12 @@ function makeDancer(role){
   }
   add(sphereG,mSkin,{head:true});
   add(sphereG,mTop,{joint:'chest',rad:0.12});
-  if(p.skirt){const sk=new THREE.MeshStandardMaterial({color:p.skirt,roughness:.55,side:THREE.DoubleSide});add(new THREE.CylinderGeometry(0.62,1,1,32,1,true),sk,{skirt:true});}
+  if(p.skirt){
+    /* per-vertex alpha: solid at the waist (+y), fading towards the hem; only takes effect when the material is transparent */
+    const geo=new THREE.CylinderGeometry(0.62,1,1,32,8,true),pos=geo.attributes.position,col=new Float32Array(pos.count*4);
+    for(let i=0;i<pos.count;i++){const t=pos.getY(i)+0.5;col.set([1,1,1,0.08+0.92*Math.pow(t,1.6)],i*4);}
+    geo.setAttribute('color',new THREE.BufferAttribute(col,4));
+    const sk=new THREE.MeshStandardMaterial({color:p.skirt,roughness:.55,side:THREE.DoubleSide,vertexColors:true});add(geo,sk,{skirt:true});}
   world.add(g);return {group:g,parts,role,ghost:false};
 }
 const GHOST={lead:new THREE.MeshBasicMaterial({color:0x9db0e6,transparent:true,opacity:0.42,depthWrite:false}),
@@ -487,7 +492,7 @@ function seeMat(m,op){if(m.userData.see===SEE)return;m.userData.see=SEE;m.transp
 function applySeeThrough(){for(const d of S.dancers)for(const pt of d.parts){
   if(pt.leg)seeMat(pt.mesh.userData.mat,0.5);
   /* drawn after the legs and without writing depth, so the legs inside it always show through */
-  else if(pt.skirt){const m=pt.mesh.userData.mat;m.depthWrite=!SEE;seeMat(m,0.18);pt.mesh.renderOrder=SEE?1:0;}}}
+  else if(pt.skirt){const m=pt.mesh.userData.mat;m.depthWrite=!SEE;seeMat(m,1);pt.mesh.renderOrder=SEE?1:0;}}}
 function setGhost(d,on){
   if(d.ghost===on)return;d.ghost=on;if(typeof applyCharVis==='function')setTimeout(applyCharVis,0);
   for(const pt of d.parts){const m=pt.mesh;m.material=on?GHOST[d.role]:m.userData.mat;m.castShadow=!on;m.receiveShadow=!on;m.renderOrder=on?2:0;if(pt.skirt)m.visible=!on;}
