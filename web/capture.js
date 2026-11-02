@@ -1,10 +1,13 @@
 /* Video → 3D dance motion, fully in the browser with MediaPipe Pose Landmarker.
    Output uses the page's 22-joint layout so captured moves play exactly like the built-in ones. */
-let landmarker=null, landmarkerPoses=0;
+let landmarker=null, landmarkerPoses=0, lastTs=0;
+/* MediaPipe VIDEO mode needs strictly increasing timestamps across every caller (file analysis and live camera) */
+export function tsBase(){return lastTs+1000;}
+export function nextTs(ms){lastTs=Math.max(lastTs+1,Math.round(ms));return lastTs;}
 
 function loadScript(src){return new Promise((res,rej)=>{const s=document.createElement('script');s.src=src;s.onload=res;s.onerror=()=>rej(new Error('load '+src));document.head.appendChild(s);});}
 
-async function getLandmarker(numPoses){
+export async function getLandmarker(numPoses){
   if(landmarker&&landmarkerPoses===numPoses)return landmarker;
   const {PoseLandmarker}=await import(new URL('vision_bundle.mjs',document.baseURI).href);
   if(!window.POSE_MODEL_B64)await loadScript('pose_model.js');
@@ -17,13 +20,22 @@ async function getLandmarker(numPoses){
   landmarkerPoses=numPoses;return landmarker;
 }
 
-const EDGES=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[27,31],[24,26],[26,28],[28,32]];
-function drawOverlay(ctx,video,poses){
-  const W=ctx.canvas.width,H=ctx.canvas.height;ctx.drawImage(video,0,0,W,H);
-  const cols=['#7f93c9','#e0607a'];
-  poses.forEach((L,pi)=>{ctx.strokeStyle=cols[pi%2];ctx.lineWidth=3;ctx.beginPath();
-    for(const [a,b] of EDGES){ctx.moveTo(L[a].x*W,L[a].y*H);ctx.lineTo(L[b].x*W,L[b].y*H);}ctx.stroke();});
+const EDGES=[[11,12],[11,13],[13,15],[12,14],[14,16],[11,23],[12,24],[23,24],[23,25],[25,27],[27,31],[24,26],[26,28],[28,32],[27,29],[29,31],[28,30],[30,32],[15,19],[16,20],[7,8]];
+const COLS=['#7f93c9','#e0607a'];
+/* video frame plus skeletons; landmarks are normalised image coordinates. mirror flips both like a selfie view */
+export function drawPoses(ctx,video,poses,mirror){
+  const W=ctx.canvas.width,H=ctx.canvas.height;
+  ctx.save();if(mirror){ctx.translate(W,0);ctx.scale(-1,1);}
+  if(video&&video.readyState>=2)ctx.drawImage(video,0,0,W,H);else{ctx.fillStyle='#000';ctx.fillRect(0,0,W,H);}
+  const lw=Math.max(2,W/220);
+  poses.forEach((L,pi)=>{const ok=i=>L[i]&&(L[i].visibility??1)>0.3;
+    ctx.strokeStyle=COLS[pi%2];ctx.lineWidth=lw;ctx.lineCap='round';ctx.beginPath();
+    for(const [a,b] of EDGES)if(ok(a)&&ok(b)){ctx.moveTo(L[a].x*W,L[a].y*H);ctx.lineTo(L[b].x*W,L[b].y*H);}ctx.stroke();
+    ctx.fillStyle='#fff';for(let i=11;i<33;i++)if(ok(i)){ctx.beginPath();ctx.arc(L[i].x*W,L[i].y*H,lw*0.9,0,7);ctx.fill();}
+    if(ok(0)){ctx.strokeStyle=COLS[pi%2];ctx.beginPath();ctx.arc(L[0].x*W,L[0].y*H,lw*3,0,7);ctx.stroke();}});
+  ctx.restore();
 }
+function drawOverlay(ctx,video,poses){drawPoses(ctx,video,poses,false);}
 
 function seek(video,t){return new Promise(res=>{const h=()=>{video.removeEventListener('seeked',h);res();};video.addEventListener('seeked',h);video.currentTime=t;});}
 
@@ -60,11 +72,11 @@ export async function captureVideo(file,{numPoses=1,start=0,end=null,rate=15,onP
   onProgress&&onProgress(0,'model');
   const lm=await getLandmarker(numPoses);
   const aspect=video.videoWidth/video.videoHeight;
-  const frames=[];const n=Math.max(2,Math.floor((end-start)*rate));
+  const frames=[];const n=Math.max(2,Math.floor((end-start)*rate));const base=tsBase();
   for(let i=0;i<n;i++){
     if(signal&&signal.aborted)throw new Error('aborted');
     const t=start+i/rate;await seek(video,t);
-    const r=lm.detectForVideo(video,Math.round(t*1000)+1+i);
+    const r=lm.detectForVideo(video,nextTs(base+(t-start)*1000));
     const poses=(r.worldLandmarks||[]).map((W,k)=>toJoints(W,r.landmarks[k],aspect));
     frames.push(poses.map((p,k)=>({...p,img:r.landmarks[k]})));
     if(overlay)drawOverlay(overlay.getContext('2d'),video,r.landmarks||[]);
@@ -72,6 +84,22 @@ export async function captureVideo(file,{numPoses=1,start=0,end=null,rate=15,onP
     if(i%4===0)await new Promise(r=>setTimeout(r,0));
   }
   URL.revokeObjectURL(url);
+  return assemble(frames,n,rate,numPoses);
+}
+
+/* camera recording samples ({t, p:[flat image landmarks x,y,z,v], w:[flat world landmarks x,y,z]}) → 3D motion */
+export function unpack(a,k){const L=[];for(let i=0;i<33;i++)L.push(k===4?{x:a[i*4],y:a[i*4+1],z:a[i*4+2],visibility:a[i*4+3]}:{x:a[i*3],y:a[i*3+1],z:a[i*3+2]});return L;}
+export function motionFromSamples(samples,{aspect=16/9,numPoses=1,rate=15}={}){
+  if(samples.length<2)throw new Error('nobody');
+  const t0=samples[0].t,t1=samples[samples.length-1].t;const n=Math.max(2,Math.floor((t1-t0)*rate));
+  const frames=[];let j=0;
+  for(let i=0;i<n;i++){const t=t0+i/rate;
+    while(j+1<samples.length&&Math.abs(samples[j+1].t-t)<=Math.abs(samples[j].t-t))j++;
+    const s=samples[j];frames.push(s.w.map((w,k)=>{const img=unpack(s.p[k],4);return {...toJoints(unpack(w,3),img,aspect),img};}));}
+  return assemble(frames,n,rate,numPoses);
+}
+
+function assemble(frames,n,rate,numPoses){
   // track identities across frames by hip position in the image
   const people=Math.min(numPoses,Math.max(...frames.map(f=>f.length),0));
   if(!people)throw new Error('nobody');

@@ -154,3 +154,4 @@ vite.config.ts.timestamp-*
 # macOS / Python
 .DS_Store
 __pycache__/
+recordings/

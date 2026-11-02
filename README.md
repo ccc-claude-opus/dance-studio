@@ -2,11 +2,14 @@
 
 用 3D 舞者示範各種舞蹈：真人動作捕捉、依舞步規則生成的國標舞、從你自己的影片抓出的動作。介面有中文和英文。
 
+* 展示頁 -- https://ccc-claude-opus.github.io/dance-studio/
+
 ## 資料夾結構
 
 ```
 dance-studio/
 ├── README.md
+├── server.py                    選用的本機伺服器：提供網頁並把相機錄影存到 recordings/
 ├── .github/workflows/pages.yml  把 web/ 發佈到 gh-pages 分支
 ├── web/                         網頁本體（直接放到任何靜態網站主機即可）
 │   ├── index.html               主程式：舞台、控制、音樂、影片、練習功能
@@ -14,6 +17,7 @@ dance-studio/
 │   ├── data_<舞種>.js           各舞種的關節軌跡資料（點選時才載入）
 │   ├── music.js                 即時合成的伴奏，以及線上真實錄音的曲目清單
 │   ├── capture.js               從影片抓動作（MediaPipe 姿勢辨識）
+│   ├── camera.js                相機即時骨架、錄影與回放，以及和 server.py 溝通
 │   ├── vision_bundle.mjs        MediaPipe Tasks Vision 0.10.21
 │   ├── vision_wasm_internal.js  MediaPipe WASM 載入器
 │   ├── vision_wasm_internal.wasm
@@ -34,6 +38,8 @@ dance-studio/
 
 ## 在自己電腦上執行
 
+（想要存相機錄影的話，改用下面「相機即時錄影」一節的 `python3 server.py`。）
+
 網頁會用 ES 模組和 WASM，直接雙擊 index.html 開不起來，要用本機伺服器：
 
 ```bash
@@ -44,6 +50,26 @@ python3 -m http.server 8000
 然後用瀏覽器開 http://localhost:8000 。
 
 網頁需要連網一次，從 cdn.jsdelivr.net 載入 three.js 0.160.0，並從 Google Fonts 載入字型。
+
+## 相機即時錄影
+
+「相機即時錄影」區可以開啟電腦或手機的相機，即時在畫面上畫出辨識到的骨架（單人或雙人）。按「● 開始錄影」會同時錄下影像（WebM，Safari 為 MP4）和每一格的骨架座標，錄完可以：
+
+- 回放：影像和骨架一起播放、暫停、拖曳；也可以關掉影像只看骨架。
+- 放上舞台：把骨架轉成 3D 動作，用舞台上的舞者重播，滿意的話再加入某支舞的橋段（和「從影片抓動作」相同的流程）。
+- 存到伺服器：只有用 `server.py` 開啟網頁時才會出現。
+
+相機只能在 https 或 localhost 下使用，GitHub Pages 和本機都可以。
+
+**沒有伺服器**（GitHub Pages、`python3 -m http.server`）：錄影、回放、放上舞台都能用，但錄影只存在記憶體裡，關閉頁面就消失。
+
+**有伺服器**：在專案資料夾執行
+
+```bash
+python3 server.py
+```
+
+然後開 http://localhost:8000 。頁面會自動偵測到伺服器，錄影可以存檔，下次開啟會出現在「我的錄影」清單。每段錄影存成 `recordings/<id>/` 底下的 `meta.json`、`skeleton.json`（MediaPipe 33 個關節，影像座標與世界座標）和 `video.webm`。可用 `--port`、`--data`（存放位置）調整；要讓同一個網路的手機連線，加 `--host 0.0.0.0`，但手機瀏覽器只允許 https 網頁使用相機，所以這種情況需要另外架 https。`server.py` 只用 Python 標準函式庫，沒有帳號或權限控管，請只在自己的電腦或信任的網路上使用。
 
 ## 放上 GitHub Pages
 
