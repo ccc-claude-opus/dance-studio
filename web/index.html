@@ -476,7 +476,9 @@ function makeDancer(role){
   add(sphereG,mTop,{joint:'chest',rad:0.12});
   if(p.skirt){
     /* per-vertex alpha: solid at the waist (+y), fading towards the hem; only takes effect when the material is transparent */
-    const geo=new THREE.CylinderGeometry(0.62,1,1,32,8,true),pos=geo.attributes.position,col=new Float32Array(pos.count*4);
+    /* lathe profile (radius, height), hem at -0.5 and waist at +0.5: slim waist, follows the hips, then a gentle flare */
+    const prof=[[1,-0.5],[0.9,-0.3],[0.8,-0.1],[0.74,0.08],[0.72,0.2],[0.66,0.32],[0.58,0.42],[0.54,0.5]].map(([r,y])=>new THREE.Vector2(r,y));
+    const geo=new THREE.LatheGeometry(prof,40),pos=geo.attributes.position,col=new Float32Array(pos.count*4);
     for(let i=0;i<pos.count;i++){const t=pos.getY(i)+0.5;col.set([1,1,1,0.08+0.92*Math.pow(t,1.6)],i*4);}
     geo.setAttribute('color',new THREE.BufferAttribute(col,4));
     const sk=new THREE.MeshStandardMaterial({color:p.skirt,roughness:.55,side:THREE.DoubleSide,vertexColors:true});add(geo,sk,{skirt:true});}
@@ -519,7 +521,7 @@ function poseDancer(d,f){const G=d.ghost,TR=0.013;
       _side.copy(_sh).addScaledVector(_up,-_sh.dot(_up)).normalize();_fwd.crossVectors(_side,_up);
       const hh=Math.max(0.1,Math.min(0.14,L*0.62));_a.copy(h).addScaledVector(_up,hh*0.85).addScaledVector(_fwd,0.012);
       const hs=G?0.75:1;_m.makeBasis(_side.multiplyScalar(0.085*hs),_tmp.copy(_up).multiplyScalar(hh*hs),_fwd.multiplyScalar(0.098*hs));_m.setPosition(_a);m.matrix.copy(_m);}
-    else if(pt.skirt&&!G){_up.subVectors(P[J.spine],P[J.hips]).normalize();_a.copy(P[J.spine]).addScaledVector(_up,0.02);_b.copy(_a).addScaledVector(_up,-0.55);setSeg(m,_b,_a,0.28,0.25,_hp);/* knee-length skirt: snug at the waist, flaring to the knees */}
+    else if(pt.skirt&&!G){_up.subVectors(P[J.spine],P[J.hips]).normalize();_a.copy(P[J.spine]).addScaledVector(_up,0.02);_b.copy(_a).addScaledVector(_up,-0.55);setSeg(m,_b,_a,0.245,0.19,_hp);/* knee-length skirt: slim fitted waist, flaring to the knees */}
   }
 }
 
