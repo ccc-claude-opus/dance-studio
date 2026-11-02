@@ -1,0 +1,38 @@
+# Publish web/ to the gh-pages branch whenever main changes.
+# The site is static (no build step), so the branch holds web/ exactly as committed.
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+    paths: ['web/**', '.github/workflows/pages.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+concurrency:
+  group: gh-pages
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Push web/ to gh-pages
+        env:
+          REPO: ${{ github.repository }}
+          TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          SHA: ${{ github.sha }}
+        run: |
+          cd web
+          touch .nojekyll                      # serve files as-is, skip Jekyll
+          git init -q -b gh-pages
+          git config user.name  "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add -A
+          git commit -q -m "Deploy ${SHA}"
+          git push -f "https://x-access-token:${TOKEN}@github.com/${REPO}.git" gh-pages
+          echo "Site: https://${REPO%%/*}.github.io/${REPO#*/}/" >> "$GITHUB_STEP_SUMMARY"

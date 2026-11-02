@@ -7,6 +7,7 @@
 ```
 dance-studio/
 ├── README.md
+├── .github/workflows/pages.yml  把 web/ 發佈到 gh-pages 分支
 ├── web/                         網頁本體（直接放到任何靜態網站主機即可）
 │   ├── index.html               主程式：舞台、控制、音樂、影片、練習功能
 │   ├── meta.js                  舞種清單、橋段名稱與說明（中英）、每段的速度
@@ -43,6 +44,18 @@ python3 -m http.server 8000
 然後用瀏覽器開 http://localhost:8000 。
 
 網頁需要連網一次，從 cdn.jsdelivr.net 載入 three.js 0.160.0，並從 Google Fonts 載入字型。
+
+## 放上 GitHub Pages
+
+`.github/workflows/pages.yml` 會在 main 上的 `web/` 有變動時，把 `web/` 原封不動推到 `gh-pages` 分支（也可以在 Actions 頁面手動執行 *Deploy to GitHub Pages*）。網頁沒有建置步驟，所有路徑都是相對路徑，放在子路徑下也能用。
+
+第一次設定：
+
+1. push 到 main，等 Actions 跑完，確認多了 `gh-pages` 分支。
+2. 到 repo 的 **Settings → Pages**，Source 選 **Deploy from a branch**，分支選 `gh-pages`、資料夾 `/ (root)`。
+3. 網址是 `https://<帳號>.github.io/<repo>/`，例如 https://ccc-claude-opus.github.io/dance-studio/ 。
+
+如果 Actions 推送時出現權限錯誤，到 **Settings → Actions → General → Workflow permissions** 選 **Read and write permissions**。
 
 ## 重新建置資料（選用）
 
