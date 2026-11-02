@@ -431,7 +431,7 @@ const world=new THREE.Group();scene.add(world);
 const PAL={
   /* bright, contrasting parts so arms read against the torso and legs against the dark floor */
   lead:{top:0x16b9a0,arm:0xffcf33,leg:0x2f6ae8,shoe:0xf2f2f2,skin:0xd9b08c,skirt:null},
-  follow:{top:0xc8243f,arm:0xd9b08c,leg:0xb447e0,shoe:0xf0b429,skin:0xe0b896,skirt:null},
+  follow:{top:0xc8243f,arm:0xd9b08c,leg:0xd9b08c,shoe:0xf0b429,skin:0xe0b896,skirt:0xc8243f},
   solo:{top:0x6b6f78,arm:0xcfa27f,leg:0x22242a,shoe:0x1a1a1a,skin:0xcfa27f,skirt:null}
 };
 const unitCyl=(rt,rb)=>new THREE.CylinderGeometry(rt,rb,1,20,1,false);
@@ -493,7 +493,7 @@ function poseDancer(d,f){const G=d.ghost,TR=0.013;
       _side.copy(_sh).addScaledVector(_up,-_sh.dot(_up)).normalize();_fwd.crossVectors(_side,_up);
       const hh=Math.max(0.1,Math.min(0.14,L*0.62));_a.copy(h).addScaledVector(_up,hh*0.85).addScaledVector(_fwd,0.012);
       const hs=G?0.75:1;_m.makeBasis(_side.multiplyScalar(0.085*hs),_tmp.copy(_up).multiplyScalar(hh*hs),_fwd.multiplyScalar(0.098*hs));_m.setPosition(_a);m.matrix.copy(_m);}
-    else if(pt.skirt&&!G){_up.subVectors(P[J.spine],P[J.hips]).normalize();_a.copy(P[J.spine]).addScaledVector(_up,0.02);_b.copy(_a).addScaledVector(_up,-0.27);setSeg(m,_b,_a,0.19,0.15,_hp);/* fitted mini skirt: hugs the hips and stops at the upper thigh so the legs stay visible */}
+    else if(pt.skirt&&!G){_up.subVectors(P[J.spine],P[J.hips]).normalize();_a.copy(P[J.spine]).addScaledVector(_up,0.02);_b.copy(_a).addScaledVector(_up,-0.27);setSeg(m,_b,_a,0.18,0.14,_hp);/* fitted mini skirt: hugs the hips and stops at the upper thigh so the legs stay visible */}
   }
 }
 
