@@ -1,0 +1,1150 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<style>:root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}body{margin:0;font:14px system-ui,sans-serif}img{max-width:100%}[hidden]{display:none!important}</style>
+</head>
+<body>
+<title>真人動捕舞蹈教室</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500;700&family=Noto+Serif+TC:wght@600;900&family=JetBrains+Mono:wght@500&display=swap">
+<style>
+/* Layout: rehearsal studio. Stage canvas on top (left on desktop), control desk below (right on desktop). Single dark theme by choice: a lit stage reads best on dark. */
+:root{
+  --ink:#ece6da;--ink-dim:#a59d8f;--ink-faint:#776f63;
+  --hall:#14120f;--desk:#1d1a16;--desk-2:#27231d;--line:#3a342b;
+  --brass:#d9a648;--brass-ink:#1a1406;--lead:#7f93c9;--follow:#d2566b;
+  --f-display:"Noto Serif TC","Songti TC",serif;
+  --f-body:"Noto Sans TC","PingFang TC","Microsoft JhengHei",system-ui,sans-serif;
+  --f-mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+  color-scheme:dark;
+}
+html,body{height:100%}
+[hidden]{display:none!important}
+body{background:var(--hall);color:var(--ink);font-family:var(--f-body);font-size:15px;line-height:1.55}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:10;background:var(--hall)}
+.wrap{display:grid;grid-template-columns:minmax(0,1fr);max-width:1320px;margin:0 auto}
+@media (min-width:900px){.wrap{grid-template-columns:minmax(0,1fr) 420px;min-height:100%}}
+.stage{position:relative;height:min(58vh,620px);min-height:330px;background:#0b0a09;overflow:hidden}
+@media (min-width:900px){.stage{height:100vh;position:sticky;top:0}}
+#gl{position:absolute;inset:0;width:100%;height:100%;display:block;touch-action:none}
+.hud{position:absolute;left:max(14px,env(safe-area-inset-left,0px));top:12px;right:14px;display:flex;justify-content:space-between;gap:10px;pointer-events:none}
+.hud .now{font-family:var(--f-display);font-weight:900;font-size:clamp(22px,5vw,32px);letter-spacing:.02em;text-shadow:0 2px 12px #000a;line-height:1.2}
+.hud .fig{font-size:14px;margin-top:4px;color:var(--ink);text-shadow:0 1px 8px #000}
+.hud .fig em{font-style:normal;color:var(--brass);font-family:var(--f-mono);font-size:12px;margin-left:6px}
+.badge{align-self:flex-start;font-family:var(--f-mono);font-size:11px;letter-spacing:.06em;color:var(--brass);border:1px solid #d9a64866;padding:3px 8px;border-radius:3px;white-space:nowrap;background:#0008}
+.loading{position:absolute;inset:0;display:grid;place-items:center;color:var(--ink-dim);font-size:13px;pointer-events:none;background:#0b0a0999}
+.cam{position:absolute;right:max(12px,env(safe-area-inset-right,0px));bottom:12px;display:flex;gap:6px}
+.cam button,.musicbtn{background:#000a;color:var(--ink);border:1px solid var(--line);border-radius:6px;font:500 12px var(--f-body);padding:6px 10px;cursor:pointer}
+.cam button:hover{border-color:var(--brass)}
+.musicbtn{position:absolute;left:calc(max(12px,env(safe-area-inset-left,0px)) + 46px);bottom:12px;font-size:13px;padding:7px 12px}
+.stageplay{position:absolute;left:max(12px,env(safe-area-inset-left,0px));bottom:12px;width:38px;height:34px;border-radius:6px;border:1px solid var(--line);background:#000a;color:var(--ink);font-size:14px;cursor:pointer;display:grid;place-items:center;z-index:3}
+.stageplay:hover{border-color:var(--brass);color:var(--brass)}
+.musicbtn[aria-pressed=true]{border-color:var(--brass);color:var(--brass)}
+.desk{background:var(--desk);padding-block:16px 28px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));display:flex;flex-direction:column;gap:16px;min-width:0}
+.dances{display:flex;flex-wrap:wrap;gap:6px}
+.dances .grp{flex-basis:100%;margin-top:6px}
+.dances .grp:first-child{margin-top:0}
+.dance{background:transparent;border:1px solid var(--line);border-radius:999px;color:var(--ink-dim);font:500 14px var(--f-body);padding:6px 13px;cursor:pointer}
+.dance[aria-pressed=true]{background:var(--brass);border-color:var(--brass);color:var(--brass-ink)}
+.transport{display:grid;grid-template-columns:auto minmax(0,1fr) auto;align-items:center;gap:12px}
+.play{width:46px;height:46px;border-radius:50%;border:none;background:var(--brass);color:var(--brass-ink);font-size:18px;cursor:pointer;display:grid;place-items:center}
+button:focus-visible,input:focus-visible{outline:2px solid var(--brass);outline-offset:2px}
+.time{font-family:var(--f-mono);font-size:12px;color:var(--ink-dim);font-variant-numeric:tabular-nums;white-space:nowrap}
+input[type=range]{width:100%;accent-color:var(--brass)}
+.row{display:flex;flex-wrap:wrap;gap:10px;align-items:center}
+.label{font-size:11px;letter-spacing:.14em;color:var(--ink-faint);font-weight:500}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:8px;overflow:hidden}
+.seg button{background:transparent;border:none;color:var(--ink-dim);font:500 14px var(--f-body);padding:7px 13px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button[aria-pressed=true]{background:var(--desk-2);color:var(--ink)}
+.seg button:disabled{color:var(--ink-faint);cursor:not-allowed}
+.dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin-right:6px;vertical-align:1px}
+.note{font-size:12.5px;color:var(--ink-dim)}
+.slider{display:grid;grid-template-columns:3.2em minmax(0,1fr) 3.4em;gap:10px;align-items:center}
+.slider output{font-family:var(--f-mono);font-size:13px;text-align:right}
+.toggle{display:inline-flex;align-items:center;gap:8px;font-size:14px;color:var(--ink-dim);cursor:pointer}
+.toggle input{accent-color:var(--brass);width:16px;height:16px}
+h2.sec{font-family:var(--f-display);font-weight:600;font-size:17px;margin:0;display:flex;align-items:baseline;justify-content:space-between;gap:8px}
+h2.sec small{font-family:var(--f-body);font-weight:400;font-size:12px;color:var(--ink-faint)}
+.figs{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:6px}
+.figbtn{background:transparent;border:1px solid var(--line);border-radius:8px;color:var(--ink);text-align:left;padding:9px 11px;cursor:pointer;font:inherit;display:flex;flex-direction:column;gap:1px;min-width:0}
+.figbtn:hover{border-color:#5a5043}
+.figbtn[aria-pressed=true]{border-color:var(--brass);background:#d9a64814}
+.figbtn b{font-weight:500;font-size:14px}
+.figbtn i{font-style:normal;font-size:11.5px;color:var(--ink-dim)}
+.figbtn span{font-size:11px;color:var(--ink-faint);font-family:var(--f-mono)}
+.figbtn.free{grid-column:1/-1;flex-direction:row;align-items:center;justify-content:space-between;gap:10px}
+.figbtn.free b{font-family:var(--f-display);font-weight:600;font-size:15px}
+.desc{font-size:13px;color:var(--ink-dim);border-left:2px solid var(--brass);padding-left:10px;min-height:1.4em}
+.music{display:flex;flex-direction:column;gap:10px;border:1px solid var(--line);border-radius:10px;padding:12px}
+.songs{display:flex;flex-direction:column;gap:4px}
+.song{display:grid;grid-template-columns:minmax(0,1fr) auto auto;gap:8px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:7px 10px;cursor:pointer;background:transparent;color:var(--ink);font:inherit;text-align:left}
+.song[aria-pressed=true]{border-color:var(--brass);background:#d9a64814}
+.song .nm{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:14px}
+.song .bpm{font-family:var(--f-mono);font-size:11.5px;color:var(--ink-dim);white-space:nowrap}
+.songs .grp{font-size:12px;color:var(--ink-dim);margin:6px 2px 0}
+.song .x{background:none;border:none;color:var(--ink-faint);font-size:16px;cursor:pointer;padding:0 4px}
+.btn{background:transparent;border:1px solid var(--line);border-radius:8px;color:var(--ink);font:500 13px var(--f-body);padding:7px 12px;cursor:pointer}
+.btn:hover{border-color:var(--brass)}
+.bpmrow{display:flex;gap:6px;align-items:center;flex-wrap:wrap;font-size:13px;color:var(--ink-dim)}
+.bpmrow b{font-family:var(--f-mono);color:var(--ink);font-weight:500;min-width:4ch;text-align:center}
+.gen{color:var(--follow)}
+.vids{display:flex;flex-direction:column;gap:6px}
+.vcats{display:flex;flex-wrap:wrap;gap:5px}
+.vcat{background:transparent;border:1px solid var(--line);border-radius:999px;color:var(--ink-dim);font:500 12.5px var(--f-body);padding:4px 10px;cursor:pointer}
+.vcat[aria-pressed=true]{border-color:var(--brass);color:var(--brass)}
+.vlink{display:grid;grid-template-columns:auto minmax(0,1fr) auto;gap:10px;align-items:center;border:1px solid var(--line);border-radius:8px;padding:9px 11px;color:var(--ink);text-decoration:none}
+.vlink:hover{border-color:var(--brass)}
+.vlink .pl{width:28px;height:20px;border-radius:5px;background:#c4302b;display:grid;place-items:center;color:#fff;font-size:10px}
+.vlink .t{font-size:14px;line-height:1.35}
+.vlink .lg{font-family:var(--f-mono);font-size:10.5px;color:var(--ink-faint)}
+.pip{position:absolute;right:max(10px,env(safe-area-inset-right,0px));top:52px;width:min(44%,360px);border-radius:8px;overflow:hidden;border:1px solid var(--line);background:#000;z-index:3}
+.pip video{display:block;width:100%;max-height:46vh;background:#000}
+.pip .bar{display:flex;justify-content:space-between;align-items:center;gap:6px;padding:4px 6px;background:#000c;font-size:11px;color:var(--ink-dim)}
+.pip .bar span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0}
+.pip button{background:none;border:none;color:var(--ink);font-size:15px;cursor:pointer;padding:0 4px}
+.beats{position:absolute;left:50%;transform:translateX(-50%);bottom:14px;display:flex;gap:4px;align-items:flex-end;pointer-events:none;z-index:2}
+.beats span{font-family:var(--f-mono);font-size:15px;color:#ece6da66;min-width:1.15em;text-align:center;transition:color .08s,transform .08s;line-height:1}
+.beats span.on{color:var(--brass);transform:scale(1.9);text-shadow:0 0 12px #000}
+.beats span.one{color:#ece6daaa}
+.beats span.one.on{color:#ffd27a}
+@media (max-width:520px){.beats{left:auto;right:max(12px,env(safe-area-inset-right,0px));transform:none}}
+.cap canvas{display:block;max-width:100%;border-radius:8px;background:#000}
+.prog{height:6px;border-radius:3px;background:var(--desk-2);overflow:hidden}
+.prog i{display:block;height:100%;width:0;background:var(--brass);transition:width .15s}
+.cap input[type=text],.cap input[type=number]{background:var(--desk-2);border:1px solid var(--line);border-radius:8px;color:var(--ink);font:inherit;padding:7px 10px;min-width:0}
+.cap input[type=number]{width:5.5em}
+.cap .err{color:#ff8a8a;font-size:13px}
+.figbtn .mine{color:var(--brass)}
+.foot{font-size:12px;color:var(--ink-faint);border-top:1px solid var(--line);padding-top:14px;line-height:1.7}
+.foot a{color:var(--ink-dim)}
+</style>
+
+<div class="wrap">
+  <section class="stage" aria-label="舞台" data-i18n-aria="stage">
+    <canvas id="gl"></canvas>
+    <div class="hud">
+      <div>
+        <div class="now" id="nowName">薩爾薩</div>
+        <div class="fig" id="nowFig"></div>
+      </div>
+      <div class="badge" id="nowBadge">MOCAP</div>
+    </div>
+    <div class="pip" id="pip" hidden><video id="pipVideo" playsinline controls></video><div class="bar"><span id="pipName"></span><button id="pipClose" aria-label="關閉影片" data-i18n-aria="closeVideo">×</button></div></div>
+    <div class="loading" id="loading" data-i18n="loadingDancers">載入舞者…</div>
+    <button class="stageplay" id="stagePlay" aria-label="暫停">❚❚</button>
+    <button class="musicbtn" id="musicBtn" aria-pressed="false">♪ 開啟音樂</button>
+    <div class="beats" id="beats" aria-hidden="true"></div>
+
+  </section>
+
+  <section class="desk">
+    <div class="row" style="justify-content:space-between">
+      <span class="label" data-i18n="language">語言</span>
+      <div class="seg" role="group" aria-label="Language">
+        <button id="langZh" lang="zh-Hant" aria-pressed="true">中文</button>
+        <button id="langEn" lang="en" aria-pressed="false">English</button>
+      </div>
+    </div>
+    <div class="dances" id="dances" role="group" aria-label="舞種" data-i18n-aria="dances"></div>
+
+    <div class="transport">
+      <button class="play" id="play" aria-label="暫停">❚❚</button>
+      <input type="range" id="scrub" min="0" max="1000" value="0" step="1" aria-label="播放位置" data-i18n-aria="position">
+      <span class="time" id="time">0.0 / 0.0 s</span>
+    </div>
+
+    <div class="row" style="justify-content:space-between">
+      <div class="row">
+        <span class="label" data-i18n="demo">示範</span>
+        <div class="seg" role="group" aria-label="示範人數" data-i18n-aria="demoCount">
+          <button id="mSolo" aria-pressed="false" data-i18n="solo">單人</button>
+          <button id="mDuo" aria-pressed="true" data-i18n="duo">雙人</button>
+        </div>
+      </div>
+      <div class="row" id="roleRow">
+        <span class="label" data-i18n="role">角色</span>
+        <div class="seg" role="group" aria-label="角色" data-i18n-aria="role">
+          <button id="rLead" aria-pressed="true"><span class="dot" style="background:var(--lead)"></span><span data-i18n="leadPart">男步</span></button>
+          <button id="rFollow" aria-pressed="false"><span class="dot" style="background:var(--follow)"></span><span data-i18n="followPart">女步</span></button>
+        </div>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label" data-i18n="figure">人物</span>
+      <div class="seg" role="group" aria-label="人物" data-i18n-aria="figure">
+        <button id="chMan" aria-pressed="true" data-i18n="chMannequin">人偶</button><button id="chReal" aria-pressed="false" data-i18n="chReal">擬真人物</button>
+      </div>
+    </div>
+    <div class="row" id="focusRow">
+      <span class="label" data-i18n="focus">焦點</span>
+      <div class="seg" role="group" aria-label="焦點" data-i18n-aria="focus">
+        <button id="fBoth" aria-pressed="true" data-i18n="focusBoth">兩人</button>
+        <button id="fLead" aria-pressed="false"><span class="dot" style="background:var(--lead)"></span><span data-i18n="focusLead">男生</span></button>
+        <button id="fFollow" aria-pressed="false"><span class="dot" style="background:var(--follow)"></span><span data-i18n="focusFollow">女生</span></button>
+      </div>
+    </div>
+    <div class="note" id="note"></div>
+
+    <div class="slider">
+      <span class="label" data-i18n="speed">速度</span>
+      <input type="range" id="speed" min="0.25" max="1.5" step="0.05" value="1" aria-label="播放速度" data-i18n-aria="speedAria">
+      <output id="speedOut">1.00×</output>
+    </div>
+    <div class="row">
+      <span class="label" data-i18n="view">視角</span>
+      <div class="seg" role="group" aria-label="視角" data-i18n-aria="view" style="flex-wrap:wrap">
+        <button id="camFront" data-i18n="front">正面</button><button id="camBack" data-i18n="back">背後</button><button id="camSide" data-i18n="side">側面</button><button id="camTop" data-i18n="top">俯視</button><button id="camFeet" data-i18n="feet">看腳</button>
+      </div>
+    </div>
+    <div class="row">
+      <span class="label" data-i18n="playMode">播放</span>
+      <div class="seg" role="group" aria-label="播放" data-i18n-aria="playMode">
+        <button id="pmCont" aria-pressed="true" data-i18n="cont">連續</button><button id="pmStep" aria-pressed="false" data-i18n="stepMode">一步一停</button>
+      </div>
+      <button class="btn" id="slowLoop" aria-pressed="false" data-i18n="slowLoop">0.5× 慢速循環</button>
+    </div>
+    <div class="row">
+      <label class="toggle"><input type="checkbox" id="showFeet" checked> <span data-i18n="footprints">地板腳印</span></label>
+      <label class="toggle"><input type="checkbox" id="showBeats" checked> <span data-i18n="beatsShow">大字拍數</span></label>
+      <label class="toggle"><input type="checkbox" id="clickSound"> <span data-i18n="clickSound">拍子提示音</span></label>
+    </div>
+    <div class="note" id="practiceNote"></div>
+    <div class="music">
+      <h2 class="sec"><span data-i18n="music">音樂</span> <small id="musicState"></small></h2>
+      <div class="songs" id="songs"></div>
+      <div class="row">
+        <button class="btn" id="addSong" data-i18n="addSong">＋ 加入我的歌曲</button>
+        <input type="file" id="songFile" accept="audio/*" multiple hidden>
+      </div>
+      <div id="songCtl" hidden>
+        <div class="bpmrow"><span data-i18n="songTempo">歌曲速度</span>
+          <button class="btn" id="bpmDown" aria-label="BPM −1">−</button><b id="bpmVal">120</b><button class="btn" id="bpmUp" aria-label="BPM +1">＋</button>
+          <button class="btn" id="tap" data-i18n="tap">跟著拍子點我</button>
+        </div>
+        <label class="toggle" style="margin-top:8px"><input type="checkbox" id="sync" checked> <span data-i18n="sync">舞步配合歌曲節拍（自動調整舞速）</span></label>
+      </div>
+      <div class="slider">
+        <span class="label" data-i18n="volume">音量</span>
+        <input type="range" id="vol" min="0" max="1" step="0.05" value="0.7" aria-label="音樂音量" data-i18n-aria="volume">
+        <output id="volOut">70%</output>
+      </div>
+      <div class="note" id="musicNote"></div>
+    </div>
+    <div class="row">
+      <label class="toggle"><input type="checkbox" id="mirror"> <span data-i18n="mirror">鏡像（像照鏡子跟著跳）</span></label>
+      <label class="toggle"><input type="checkbox" id="follow" checked> <span data-i18n="camFollow">鏡頭跟隨</span></label>
+    </div>
+
+    <div class="music">
+      <h2 class="sec"><span data-i18n="videos">真人影片</span> <small>YouTube</small></h2>
+      <div class="vcats" id="vcats" role="group"></div>
+      <div class="vids" id="vids"></div>
+      <div class="note" data-i18n="vidNote"></div>
+      <div class="row">
+        <button class="btn" id="addVideo" data-i18n="addVideo">＋ 播放我手機裡的影片</button>
+        <input type="file" id="videoFile" accept="video/*" hidden>
+      </div>
+    </div>
+
+    <div class="music cap" id="capBox">
+      <h2 class="sec"><span data-i18n="capTitle">從影片抓動作</span> <small data-i18n="capBeta">實驗功能</small></h2>
+      <div class="note" data-i18n="capIntro"></div>
+      <div class="row"><button class="btn" id="capPick" data-i18n="capPick">選擇舞蹈影片</button><input type="file" id="capFile" accept="video/*" hidden><span class="note" id="capFileName"></span></div>
+      <div id="capOpts" hidden>
+        <div class="row">
+          <span class="label" data-i18n="capPeople">人數</span>
+          <div class="seg" role="group"><button id="capP1" aria-pressed="true" data-i18n="solo">單人</button><button id="capP2" aria-pressed="false" data-i18n="duo">雙人</button></div>
+        </div>
+        <div class="row" style="margin-top:8px">
+          <label class="note"><span data-i18n="capFrom">從</span> <input type="number" id="capStart" min="0" step="0.5" value="0"> <span data-i18n="capTo">到</span> <input type="number" id="capEnd" min="0" step="0.5" value="10"> <span data-i18n="capSec">秒</span></label>
+        </div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="capRun" data-i18n="capRun">開始分析</button><button class="btn" id="capStop" hidden data-i18n="capStop">停止</button></div>
+      </div>
+      <div id="capWork" hidden>
+        <canvas id="capCanvas" width="320" height="180"></canvas>
+        <div class="prog" style="margin-top:8px"><i id="capBar"></i></div>
+        <div class="note" id="capStatus"></div>
+      </div>
+      <div id="capDone" hidden>
+        <div class="note" id="capSummary"></div>
+        <div class="row" id="capSwapRow" hidden><button class="btn" id="capSwap" data-i18n="capSwap">交換男女</button><span class="note" id="capRoles"></span></div>
+        <div class="row" style="margin-top:8px"><button class="btn" id="capPreview" data-i18n="capPreview">在舞台上預覽</button></div>
+        <div class="row" style="margin-top:8px"><input type="text" id="capName" maxlength="30" style="flex:1"><button class="btn" id="capAdd"></button></div>
+        <label class="toggle" style="margin-top:8px"><input type="checkbox" id="capFree" checked> <span data-i18n="capFree">也放進「自由示範」連續播放</span></label>
+        <div class="row" style="margin-top:8px"><button class="btn" id="capDiscard" data-i18n="capDiscard">捨棄</button></div>
+      </div>
+      <div class="err" id="capErr"></div>
+    </div>
+
+    <div>
+      <h2 class="sec" id="figTitle"><span data-i18n="figures">經典橋段</span> <small id="figHint"></small></h2>
+    </div>
+    <div class="figs" id="figs"></div>
+    <div class="desc" id="desc"></div>
+    <div class="row" id="userFigRow" hidden><button class="btn" id="userFigDel" data-i18n="capDelete">刪除這個我的動作</button></div>
+    <label class="toggle"><input type="checkbox" id="loop" checked> <span data-i18n="loop">橋段重複播放</span></label>
+
+    <div class="foot"><span data-i18n="foot"></span><br><span data-i18n="src1">動作來源：</span><a href="http://mocap.cs.cmu.edu/" target="_blank" rel="noopener">CMU Graphics Lab Motion Capture Database</a><span data-i18n="src2"></span>
+    </div>
+  </section>
+</div>
+
+<script src="meta.js"></script>
+<script src="music.js"></script>
+<script type="importmap">
+{"imports":{"three":"https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js","three/addons/":"https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/"}}
+</script>
+<script type="module">
+import * as THREE from 'three';
+import {OrbitControls} from 'three/addons/controls/OrbitControls.js';
+import {GLTFLoader} from 'three/addons/loaders/GLTFLoader.js';
+import * as SkeletonUtils from 'three/addons/utils/SkeletonUtils.js';
+
+const $=id=>document.getElementById(id);
+const I18N={
+zh:{figure:'人物',chMannequin:'人偶',chReal:'擬真人物',chLoading:'載入擬真人物…',chFail:'擬真人物載入失敗，先用人偶顯示',chNote:'擬真人物會照同樣的關節軌跡擺出姿勢；因為身材比例和人偶不同，雙人牽手的位置可能略有落差。',capTitle:'從影片抓動作',capBeta:'實驗功能',capIntro:'選一段舞蹈影片，頁面會在你的裝置上辨識人體姿勢，轉成 3D 動作；影片不會上傳。拍攝時全身入鏡、光線充足、鏡頭固定，效果最好。',capPick:'選擇舞蹈影片',capPeople:'人數',capFrom:'從',capTo:'到',capSec:'秒（一次最多 60 秒）',capRun:'開始分析',capStop:'停止',capLoading:'載入姿勢辨識模型…（第一次約 15 MB）',capRunning:'分析中 {p}%',capSwap:'交換男女',capPreview:'在舞台上預覽',capAddTo:'加入「{d}」的橋段',capFree:'也放進「自由示範」連續播放',capDiscard:'捨棄',capDelete:'刪除這個我的動作',capSummary:'抓到 {n} 位舞者、{s} 秒的動作。先預覽，滿意再加入示範。',capRoles:'左邊的人是{r}',capDefaultName:'我的動作 {n}',capAdded:'已加入「{d}」的橋段。',capNobody:'影片裡找不到清楚的人體，換一段全身入鏡的影片試試。',capFail:'分析失敗：{m}',capVideoErr:'這個影片格式無法播放，請換 MP4 檔。',mineTag:'我的影片',mineDesc:'從你的影片抓出來的動作',capPreviewName:'影片動作預覽',capDur:'影片長 {s} 秒',back:'背後',feet:'看腳',playMode:'播放',cont:'連續',stepMode:'一步一停',slowLoop:'0.5× 慢速循環',footprints:'地板腳印',beatsShow:'大字拍數',clickSound:'拍子提示音',nextStep:'下一步',stepNote:'每踩一步會自動停住，按播放鍵走下一步。',feetNote:'腳印上的數字是落地的拍數，越淡的是越後面的步。',mocapBeat:'真人錄製的拍數是依舞步節奏估算的，可能差半拍。',focus:'焦點',focusBoth:'兩人',focusLead:'男生',focusFollow:'女生',focusNote:'焦點在{who}：另一位舞者以淡色骨架顯示，鏡頭跟著{who}。',whoLead:'男生',whoFollow:'女生',videos:'真人影片',vidNote:'影片會在 YouTube 開啟，看完切回這裡就能對照 3D 示範。這個頁面不能直接內嵌其他網站的影片。',addVideo:'＋ 播放我手機裡的影片',closeVideo:'關閉影片',thisDance:'這支舞',otherSocial:'其他社交舞',zhVid:'中文',enVid:'英文',myVideoNote:'影片和 3D 舞者一起播放暫停，速度跟著速度滑桿，勾鏡像時影片也會左右翻轉。',stage:'舞台',view:'視角',front:'正面',side:'側面',top:'俯視',language:'語言',dances:'舞種',position:'播放位置',demo:'示範',demoCount:'示範人數',solo:'單人',duo:'雙人',role:'角色',
+ leadPart:'男步',followPart:'女步',speed:'速度',speedAria:'播放速度',music:'音樂',addSong:'＋ 加入我的歌曲',songTempo:'歌曲速度',tap:'跟著拍子點我',sync:'舞步配合歌曲節拍（自動調整舞速）',
+ volume:'音量',mirror:'鏡像（像照鏡子跟著跳）',camFollow:'鏡頭跟隨',figures:'經典橋段',loop:'橋段重複播放',loadingDancers:'載入舞者…',loadingChar:'載入擬真角色…',
+ loadFail:'資料載入失敗，請重新整理頁面再試',charFail:'角色載入失敗，請重新整理頁面再試',badgeChar:'MOCAP · 擬真角色',badgeSyn:'生成 · {bpm} BPM',
+ freeDesc:'依序播放全部 {n} 段，不剪輯。{src}',freeDescSyn:'連續播放整套舞步。{src}',free:'自由示範',fullOne:'完整一段',takesSecs:'{n} 段 · {s} 秒',secs:'{s} 秒',
+ genPartner:'生成舞伴',synthTag:'生成動作',pairTag:'雙人',figCount:'{n} 個',onlyOne:'這支舞只有一段完整錄製',
+ noteOneSocial:'這一段只有一位舞者的錄製。',noteSoloDance:'這是獨舞，只有單人示範。',
+ noteGen:'<span class="gen">生成舞伴：</span>男伴是真人錄製，女伴依他的動作鏡像生成（他往前、她往後），不是真人錄製。',
+ noteSyn:'<span class="gen">生成動作：</span>這支舞找不到免費的真人錄製，兩人的動作都是依標準舞步拍數規則生成的。',
+ noteReal:'兩位舞者是同一時間一起錄的，位置和牽引都是真實的。',
+ noteRole:'只看{part}{gen}，適合專心學一個角色。',leadLong:'男步（領舞）',followLong:'女步（跟舞）',genShort:'（生成）',
+ pause:'暫停',play:'播放',blocked:'瀏覽器擋下了播放，請再點一次「開啟音樂」。',removeSong:'移除這首歌',realRec:'真實錄音（線上播放，需連網）',mySongs:'我的歌曲',streamFail:'線上音樂載入失敗，請檢查網路，或改用內建伴奏。',streamLoading:'正在載入「{name}」…',builtin:'內建伴奏',autoStyle:'依舞種自動換',
+ playing:'播放中',stopped:'未播放',pickHint:'選好音樂後，點舞台左下角「開啟音樂」。',
+ synced:'舞步已依歌曲 {bpm} BPM 調成 {f} 倍速。拍子對不上時，用上面的 ＋／− 或點拍子修正。',unsynced:'歌曲照原速播放，舞步速度由速度滑桿控制。',
+ noAudio:'這個瀏覽器不支援網頁音訊。',musicOn:'♪ 開啟音樂',musicOff:'♪ 關閉音樂',analyzing:'正在分析「{name}」的節拍…',badFile:'「{name}」無法讀取，請換 MP3、M4A 或 WAV 檔。',
+ foot:'大部分動作來自真人穿動作捕捉裝錄下的資料，人偶的關節照著真人軌跡移動。巴恰塔和國標舞（標準舞五支、拉丁舞五支）找不到免費的真人錄製，是依標準舞步拍數規則生成的；標示「生成舞伴」的女伴是依真人男伴的動作鏡像產生。內建伴奏是頁面即時合成的；你加入的歌曲只存在這台裝置的瀏覽器裡，不會上傳。',
+ src1:'動作來源：',src2:'；森巴角色來自 Mixamo，單足旋轉來自 three.js 範例資料。'},
+en:{figure:'Dancers',chMannequin:'Mannequin',chReal:'Realistic',chLoading:'Loading realistic dancers…',chFail:'Couldn’t load the realistic dancers, showing mannequins instead',chNote:'Realistic dancers follow the same joint paths; their body proportions differ from the mannequins, so joined hands may not line up exactly.',capTitle:'Capture moves from video',capBeta:'Experimental',capIntro:'Pick a dance video and the page detects body poses on your device and turns them into 3D motion; the video is never uploaded. Works best with the whole body in frame, good light and a fixed camera.',capPick:'Choose a dance video',capPeople:'Dancers',capFrom:'From',capTo:'to',capSec:'s (up to 60 s at a time)',capRun:'Analyze',capStop:'Stop',capLoading:'Loading the pose model… (about 15 MB the first time)',capRunning:'Analyzing {p}%',capSwap:'Swap lead and follow',capPreview:'Preview on stage',capAddTo:'Add to {d} figures',capFree:'Also include in the free demo',capDiscard:'Discard',capDelete:'Delete this move of mine',capSummary:'Captured {n} dancer(s), {s} s of motion. Preview it, then add it if you like it.',capRoles:'The dancer on the left is the {r}',capDefaultName:'My move {n}',capAdded:'Added to the {d} figures.',capNobody:'No clear person found. Try a video with the whole body in frame.',capFail:'Analysis failed: {m}',capVideoErr:'This video format can’t be played. Try an MP4 file.',mineTag:'My video',mineDesc:'Captured from your video',capPreviewName:'Video capture preview',capDur:'Video is {s} s long',back:'Behind',feet:'Feet',playMode:'Play',cont:'Continuous',stepMode:'Step by step',slowLoop:'0.5× slow loop',footprints:'Footprints',beatsShow:'Beat count',clickSound:'Beat click',nextStep:'Next step',stepNote:'Playback stops after every step; press play for the next one.',feetNote:'The number on each footprint is the count it lands on; fainter prints come later.',mocapBeat:'Counts for real recordings are estimated from the steps and may be off by half a beat.',focus:'Focus',focusBoth:'Both',focusLead:'Lead',focusFollow:'Follow',focusNote:'Focused on the {who}: the partner is shown as a faint skeleton and the camera follows the {who}.',whoLead:'lead',whoFollow:'follow',videos:'Real dancer videos',vidNote:'Videos open on YouTube; switch back here to compare with the 3D demo. This page can’t embed videos from other sites.',addVideo:'＋ Play a video from my device',closeVideo:'Close video',thisDance:'This dance',otherSocial:'Other social dances',zhVid:'Chinese',enVid:'English',myVideoNote:'Your video plays and pauses with the 3D dancers, follows the speed slider, and flips when Mirror is on.',stage:'Stage',view:'View',front:'Front',side:'Side',top:'Top',language:'Language',dances:'Dances',position:'Position',demo:'Show',demoCount:'Number of dancers',solo:'Solo',duo:'Couple',role:'Part',
+ leadPart:'Lead',followPart:'Follow',speed:'Speed',speedAria:'Playback speed',music:'Music',addSong:'＋ Add my songs',songTempo:'Song tempo',tap:'Tap to the beat',sync:'Match the steps to the song’s beat (adjusts dance speed)',
+ volume:'Volume',mirror:'Mirror (dance along as if facing a mirror)',camFollow:'Camera follows',figures:'Figures',loop:'Repeat figure',loadingDancers:'Loading dancers…',loadingChar:'Loading character…',
+ loadFail:'Couldn’t load the data. Reload the page to try again.',charFail:'Couldn’t load the character. Reload the page to try again.',badgeChar:'MOCAP · Character',badgeSyn:'GENERATED · {bpm} BPM',
+ freeDesc:'Plays all {n} recordings in order, uncut. {src}',freeDescSyn:'Plays the whole routine. {src}',free:'Free demo',fullOne:'One full dance',takesSecs:'{n} takes · {s} s',secs:'{s} s',
+ genPartner:'Generated partner',synthTag:'Generated',pairTag:'Couple',figCount:'{n}',onlyOne:'This dance has one full recording',
+ noteOneSocial:'This take has only one recorded dancer.',noteSoloDance:'This is a solo dance.',
+ noteGen:'<span class="gen">Generated partner:</span> the lead is a real recording; the follow is generated by mirroring him (he steps forward, she steps back).',
+ noteSyn:'<span class="gen">Generated motion:</span> no free real recording exists for this dance, so both dancers follow standard syllabus step counts.',
+ noteReal:'Both dancers were recorded together, so their spacing and connection are real.',
+ noteRole:'Showing only the {part}{gen}, so you can focus on one part.',leadLong:'lead',followLong:'follow',genShort:' (generated)',
+ pause:'Pause',play:'Play',blocked:'The browser blocked playback. Tap “Music on” again.',removeSong:'Remove this song',realRec:'Real recordings (streamed, needs internet)',mySongs:'My songs',streamFail:'Couldn’t load the online track. Check your connection or use the built-in accompaniment.',streamLoading:'Loading “{name}”…',builtin:'Built-in accompaniment',autoStyle:'Matches the dance',
+ playing:'Playing',stopped:'Off',pickHint:'Pick the music, then tap “Music on” at the bottom left of the stage.',
+ synced:'Dance speed set to {f}× to match the song’s {bpm} BPM. If the beat is off, use − / ＋ or tap the beat.',unsynced:'The song plays at its own tempo; the speed slider sets the dance speed.',
+ noAudio:'This browser doesn’t support web audio.',musicOn:'♪ Music on',musicOff:'♪ Music off',analyzing:'Finding the beat of “{name}”…',badFile:'Couldn’t read “{name}”. Try an MP3, M4A or WAV file.',
+ foot:'Most moves come from real dancers recorded in motion-capture suits; each joint follows the recorded path. No free real recordings exist for bachata or the ten ballroom dances (five Standard, five Latin), so those are generated from standard syllabus step counts. A follow marked “Generated partner” is mirrored from the real lead. The built-in music is synthesized in the page; songs you add stay in this device’s browser and are never uploaded.',
+ src1:'Motion sources: ',src2:'; samba character from Mixamo; pirouette from the three.js examples.'}};
+let LANG='zh';try{const l=localStorage.getItem('dance-lang');LANG=l||(/^zh/i.test(navigator.language||'')?'zh':'en');}catch(e){LANG=/^zh/i.test(navigator.language||'')?'zh':'en';}
+const T=(k,v={})=>(I18N[LANG][k]??I18N.zh[k]??k).replace(/\{(\w+)\}/g,(_,x)=>v[x]??'');
+const DN=d=>LANG==='en'?d.en:d.name;
+const FN=f=>LANG==='en'?f.en:f.name;
+const TN=t=>t?(LANG==='en'?(t.name_en||t.name):t.name):'';
+const SRC=d=>LANG==='en'?(d.src_en||d.src):d.src;
+
+const J=Object.fromEntries(window.JOINTS.map((n,i)=>[n,i]));
+const DANCES=window.DANCES, META=window.CLIPMETA;
+const ORDER=['waltz','tango','vwaltz','foxtrot','quickstep','chacha','bsamba','rumba','paso','jive','salsa','bachata','swing','lambada','samba','ballet','indian','break'];
+const GROUPS=[['標準舞','Standard'],['拉丁舞','Latin'],['社交舞','Social'],['獨舞','Solo']];
+const PAIRCATS=['社交舞','標準舞','拉丁舞'];
+for(const k in DANCES)if(!PAIRCATS.includes(DANCES[k].cat))DANCES[k].grp='獨舞';else DANCES[k].grp=DANCES[k].cat;
+const GEN_PARTNER={swc:0.9,swl:0.85,swf:0.9,lam1:0.42,lam2:0.45};
+for(const k in GEN_PARTNER) if(META[k]) {META[k].pair=true;META[k].gen=true;}
+META.samba={fps:30,frames:0,bpm:100,off:0,pair:false};
+
+/* ---------- renderer & stage ---------- */
+const canvas=$('gl');
+const renderer=new THREE.WebGLRenderer({canvas,antialias:true});
+renderer.setPixelRatio(Math.min(devicePixelRatio,2));
+renderer.shadowMap.enabled=true;renderer.shadowMap.type=THREE.PCFSoftShadowMap;
+renderer.outputColorSpace=THREE.SRGBColorSpace;renderer.toneMapping=THREE.ACESFilmicToneMapping;renderer.toneMappingExposure=1.05;
+const scene=new THREE.Scene();scene.background=new THREE.Color(0x0b0a09);scene.fog=new THREE.Fog(0x0b0a09,9,22);
+const camera=new THREE.PerspectiveCamera(38,1,0.05,60);camera.position.set(0,1.6,5.2);
+const controls=new OrbitControls(camera,canvas);controls.target.set(0,0.95,0);controls.enableDamping=true;
+controls.minDistance=1.6;controls.maxDistance=12;controls.maxPolarAngle=Math.PI*0.495;
+scene.add(new THREE.HemisphereLight(0xfff1dc,0x221d18,0.75));
+const key=new THREE.SpotLight(0xffe2b0,90,30,Math.PI/5,0.55,1.6);key.position.set(2.5,7,4);key.castShadow=true;
+key.shadow.mapSize.set(2048,2048);key.shadow.bias=-0.0004;scene.add(key);scene.add(key.target);
+const rim=new THREE.DirectionalLight(0x9fb4ff,0.9);rim.position.set(-4,3,-5);scene.add(rim);
+const floorTex=(()=>{const c=document.createElement('canvas');c.width=c.height=512;const g=c.getContext('2d');
+  const r=g.createRadialGradient(256,256,20,256,256,256);r.addColorStop(0,'#3a332a');r.addColorStop(.55,'#231f1a');r.addColorStop(1,'#0b0a09');
+  g.fillStyle=r;g.fillRect(0,0,512,512);g.strokeStyle='rgba(217,166,72,.10)';g.lineWidth=1;
+  for(let i=0;i<=512;i+=32){g.beginPath();g.moveTo(i,0);g.lineTo(i,512);g.stroke();}
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return t;})();
+const floor=new THREE.Mesh(new THREE.CircleGeometry(12,64),new THREE.MeshStandardMaterial({map:floorTex,roughness:.85}));
+floor.rotation.x=-Math.PI/2;floor.receiveShadow=true;scene.add(floor);
+const world=new THREE.Group();scene.add(world);
+
+/* ---------- mannequin driven by real joint positions ---------- */
+const PAL={
+  lead:{top:0x2c3550,arm:0x2c3550,leg:0x1c2232,shoe:0x111111,skin:0xd9b08c,skirt:null},
+  follow:{top:0xa8283d,arm:0xd9b08c,leg:0xd9b08c,shoe:0x5a1220,skin:0xe0b896,skirt:0xb52d45},
+  solo:{top:0x6b6f78,arm:0xcfa27f,leg:0x22242a,shoe:0x1a1a1a,skin:0xcfa27f,skirt:null}
+};
+const unitCyl=(rt,rb)=>new THREE.CylinderGeometry(rt,rb,1,20,1,false);
+const sphereG=new THREE.SphereGeometry(1,24,16);
+const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.62,metalness:.04});
+function makeDancer(role){
+  const p=PAL[role];const g=new THREE.Group();const parts=[];
+  const add=(geo,m,spec)=>{const mesh=new THREE.Mesh(geo,m);mesh.userData.mat=m;mesh.matrixAutoUpdate=false;mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);parts.push({mesh,...spec});};
+  const mTop=mat(p.top),mArm=mat(p.arm),mLeg=mat(p.leg),mShoe=mat(p.shoe),mSkin=mat(p.skin);
+  const mSh=p.arm===p.skin?mTop:mArm;
+  add(unitCyl(0.92,1),mTop,{seg:['hips','spine'],r:[0.15,0.10],side:'hip'});
+  add(unitCyl(1,0.88),mTop,{seg:['spine','chest'],r:[0.17,0.105],side:'sh'});
+  add(unitCyl(0.55,1),mTop,{seg:['chest','neck'],r:[0.19,0.11],side:'sh'});
+  add(unitCyl(1,1),mSkin,{seg:['neck','head'],r:[0.045,0.045]});
+  add(unitCyl(1,1),mTop,{seg:['lHip','rHip'],r:[0.11,0.11],pad:0.04});
+  add(unitCyl(1,1),mSh,{seg:['chest','lSh'],r:[0.06,0.06],shoulder:true});
+  add(unitCyl(1,1),mSh,{seg:['chest','rSh'],r:[0.06,0.06],shoulder:true});
+  for(const s of ['l','r']){
+    add(unitCyl(0.82,1),mArm,{seg:[s+'Sh',s+'El'],r:[0.05,0.05]});
+    add(unitCyl(0.75,1),mArm,{seg:[s+'El',s+'Wr'],r:[0.042,0.042]});
+    add(unitCyl(0.7,1),mSkin,{seg:[s+'Wr',s+'Hd'],r:[0.04,0.022],side:'sh'});
+    add(unitCyl(0.72,1),mLeg,{seg:[s+'Hip',s+'Kn'],r:[0.085,0.085]});
+    add(unitCyl(0.68,1),mLeg,{seg:[s+'Kn',s+'An'],r:[0.06,0.06]});
+    add(unitCyl(0.7,1),mShoe,{seg:[s+'An',s+'Toe'],r:[0.045,0.035],side:'hip'});
+    for(const jn of [s+'Sh',s+'El',s+'Wr']) add(sphereG,jn.endsWith('Wr')?mSkin:mArm,{joint:jn,rad:jn.endsWith('Sh')?0.06:jn.endsWith('El')?0.045:0.035});
+    for(const jn of [s+'Hip',s+'Kn',s+'An']) add(sphereG,jn.endsWith('An')?mShoe:mLeg,{joint:jn,rad:jn.endsWith('Hip')?0.085:jn.endsWith('Kn')?0.062:0.05});
+  }
+  add(sphereG,mSkin,{head:true});
+  add(sphereG,mTop,{joint:'chest',rad:0.12});
+  if(p.skirt){const sk=new THREE.MeshStandardMaterial({color:p.skirt,roughness:.55,side:THREE.DoubleSide});add(new THREE.CylinderGeometry(0.62,1,1,28,1,true),sk,{skirt:true});}
+  world.add(g);return {group:g,parts,role,ghost:false};
+}
+const GHOST={lead:new THREE.MeshBasicMaterial({color:0x9db0e6,transparent:true,opacity:0.42,depthWrite:false}),
+  follow:new THREE.MeshBasicMaterial({color:0xf0a3b2,transparent:true,opacity:0.42,depthWrite:false}),
+  solo:new THREE.MeshBasicMaterial({color:0xcccccc,transparent:true,opacity:0.42,depthWrite:false})};
+function setGhost(d,on){
+  if(d.ghost===on)return;d.ghost=on;if(typeof applyCharVis==='function')setTimeout(applyCharVis,0);
+  for(const pt of d.parts){const m=pt.mesh;m.material=on?GHOST[d.role]:m.userData.mat;m.castShadow=!on;m.receiveShadow=!on;m.renderOrder=on?2:0;if(pt.skirt)m.visible=!on;}
+}
+const V=()=>new THREE.Vector3();
+const _a=V(),_b=V(),_up=V(),_side=V(),_fwd=V(),_m=new THREE.Matrix4(),_sh=V(),_hp=V(),_tmp=V();
+function setSeg(mesh,a,b,rx,rz,sideRef,pad=0){
+  _up.subVectors(b,a);let len=_up.length();if(len<1e-5){mesh.visible=false;return;}mesh.visible=true;_up.multiplyScalar(1/len);
+  if(sideRef)_side.copy(sideRef);else{_side.set(_up.y,-_up.x,0);if(_side.lengthSq()<1e-4)_side.set(1,0,0);}
+  _side.addScaledVector(_up,-_side.dot(_up)).normalize();_fwd.crossVectors(_side,_up);len+=pad*2;
+  _m.makeBasis(_side.multiplyScalar(rx),_tmp.copy(_up).multiplyScalar(len),_fwd.multiplyScalar(rz));
+  _m.setPosition((a.x+b.x)/2,(a.y+b.y)/2,(a.z+b.z)/2);mesh.matrix.copy(_m);
+}
+const P=window.JOINTS.map(()=>V());
+function poseDancer(d,f){const G=d.ghost,TR=0.013;
+  for(let j=0;j<P.length;j++)P[j].set(f[j*3],f[j*3+1],f[j*3+2]);
+  _sh.subVectors(P[J.lSh],P[J.rSh]).normalize();_hp.subVectors(P[J.lHip],P[J.rHip]).normalize();
+  for(const pt of d.parts){const m=pt.mesh;
+    if(pt.seg){const a=P[J[pt.seg[0]]],b=P[J[pt.seg[1]]];
+      if(pt.shoulder){_a.copy(a).lerp(b,G?0:0.25);setSeg(m,_a,b,G?TR:pt.r[0],G?TR:pt.r[0]);continue;}
+      setSeg(m,a,b,G?TR:pt.r[0],G?TR:pt.r[1],pt.side==='sh'?_sh:pt.side==='hip'?_hp:null,G?0:(pt.pad||0));
+    } else if(pt.joint){const c=P[J[pt.joint]];const r=G?0.026:pt.rad;m.matrix.makeScale(r,r,r).setPosition(c);}
+    else if(pt.head){const h=P[J.head],t=P[J.headTop];_up.subVectors(t,h);const L=_up.length();_up.normalize();
+      _side.copy(_sh).addScaledVector(_up,-_sh.dot(_up)).normalize();_fwd.crossVectors(_side,_up);
+      const hh=Math.max(0.1,Math.min(0.14,L*0.62));_a.copy(h).addScaledVector(_up,hh*0.85).addScaledVector(_fwd,0.012);
+      const hs=G?0.75:1;_m.makeBasis(_side.multiplyScalar(0.085*hs),_tmp.copy(_up).multiplyScalar(hh*hs),_fwd.multiplyScalar(0.098*hs));_m.setPosition(_a);m.matrix.copy(_m);}
+    else if(pt.skirt&&!G){_up.subVectors(P[J.spine],P[J.hips]).normalize();_a.copy(P[J.spine]).addScaledVector(_up,0.02);_b.copy(_a).addScaledVector(_up,-0.58);setSeg(m,_b,_a,0.3,0.27,_hp);}
+  }
+}
+
+
+/* ---------- realistic characters: pose a skinned mesh from the same joint positions ---------- */
+const CHARS={lead:{src:'rpm.js',key:'RPM_B64'},follow:{src:'michelle.js',key:'MICHELLE_B64'},solo:{src:'michelle.js',key:'MICHELLE_B64'}};
+const charGltf={};
+async function loadCharGltf(role){
+  const c=CHARS[role];if(charGltf[c.src])return charGltf[c.src];
+  return charGltf[c.src]=(async()=>{
+    if(!window[c.key])await loadFile(c.src);
+    const bin=atob(window[c.key]);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+    return await new Promise((res,rej)=>new GLTFLoader().parse(u.buffer,'',res,rej));})();
+}
+const BMAP={Hips:['hips','spine','hip'],Spine:['spine','chest','mix'],Spine1:['chest','neckMid','sh'],Spine2:['neckMid','neck','sh'],Neck:['neck','head','sh'],Head:['head','headTop','sh'],
+  LeftShoulder:['clavL','lSh','fwd'],RightShoulder:['clavR','rSh','fwd'],
+  LeftArm:['lSh','lEl','armL'],LeftForeArm:['lEl','lWr','armL'],LeftHand:['lWr','lHd','armL'],
+  RightArm:['rSh','rEl','armR'],RightForeArm:['rEl','rWr','armR'],RightHand:['rWr','rHd','armR'],
+  LeftUpLeg:['lHip','lKn','legL'],LeftLeg:['lKn','lAn','legL'],LeftFoot:['lAn','lToe','hip'],
+  RightUpLeg:['rHip','rKn','legR'],RightLeg:['rKn','rAn','legR'],RightFoot:['rAn','rToe','hip']};
+const bname=b=>b.name.replace(/^mixamorig:?/,'');
+const _q1=new THREE.Quaternion(),_q2=new THREE.Quaternion(),_m4=new THREE.Matrix4();
+function basisQ(dir,side,out){const d=dir.clone().normalize();const sd=side.clone().addScaledVector(d,-side.dot(d));if(sd.lengthSq()<1e-8)sd.set(d.y,-d.x,0.3);sd.normalize();
+  const t=new THREE.Vector3().crossVectors(sd,d);_m4.makeBasis(sd,d,t);return out.setFromRotationMatrix(_m4);}
+async function makeChar(role,sc){
+  const g=await loadCharGltf(role);const root=SkeletonUtils.clone(g.scene);
+  root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;o.frustumCulled=false;}});
+  const bones={};root.traverse(o=>{if(o.isBone){const n=bname(o);if(!bones[n])bones[n]=o;}});
+  root.updateMatrixWorld(true);
+  const inv=new THREE.Matrix4().copy(root.matrixWorld).invert();
+  const P=n=>bones[n]?new THREE.Vector3().setFromMatrixPosition(bones[n].matrixWorld).applyMatrix4(inv):null;
+  // rest joint positions in the character's own space
+  const rj={hips:P('Hips'),spine:P('Spine1')||P('Spine'),chest:P('Spine2'),neck:P('Neck'),head:P('Head'),headTop:P('HeadTop_End')||P('Head').clone().add(new THREE.Vector3(0,0.2,0)),
+    lSh:P('LeftArm'),lEl:P('LeftForeArm'),lWr:P('LeftHand'),lHd:P('LeftHandMiddle1')||P('LeftHandIndex1'),rSh:P('RightArm'),rEl:P('RightForeArm'),rWr:P('RightHand'),rHd:P('RightHandMiddle1')||P('RightHandIndex1'),
+    lHip:P('LeftUpLeg'),lKn:P('LeftLeg'),lAn:P('LeftFoot'),lToe:P('LeftToeBase'),rHip:P('RightUpLeg'),rKn:P('RightLeg'),rAn:P('RightFoot'),rToe:P('RightToeBase')};
+  const restHipY=rj.hips.y-Math.min(rj.lAn.y,rj.rAn.y)+0.08;
+  const scale=0.93*sc/restHipY;root.scale.multiplyScalar(scale);
+  // rest rotations of every bone in the character's root space (rotation only)
+  const order=[];const restQ=new Map();
+  const rootQinv=new THREE.Quaternion();root.updateMatrixWorld(true);root.getWorldQuaternion(rootQinv);rootQinv.invert();
+  root.traverse(o=>{if(o.isBone){const q=new THREE.Quaternion();o.getWorldQuaternion(q);restQ.set(o,rootQinv.clone().multiply(q));order.push(o);}});
+  const restB=new Map();
+  const frame=jp=>sideFrames(jp);
+  const rf=frame(rj);
+  for(const [n,[a,b,sd]] of Object.entries(BMAP)){const bo=bones[n];if(!bo)continue;
+    const A=pt(rj,a),B=pt(rj,b);if(!A||!B)continue;
+    const qb=basisQ(B.clone().sub(A),sideOf(sd,rf,A,B,rj),new THREE.Quaternion());restB.set(bo,{q:qb.invert(),map:[a,b,sd]});}
+  const hipsParent=bones.Hips.parent;
+  {const q=new THREE.Quaternion();hipsParent.getWorldQuaternion(q);restQ.set(hipsParent,rootQinv.clone().multiply(q));}
+  world.add(root);
+  return {root,bones,order,restQ,restB,hipsParent,scale,feet:[bones.LeftFoot,bones.RightFoot,bones.LeftToeBase,bones.RightToeBase].filter(Boolean)};
+}
+function pt(j,n){
+  if(n==='neckMid')return j.chest&&j.neck?j.chest.clone().lerp(j.neck,0.5):null;
+  if(n==='clavL'||n==='clavR'){const s=n==='clavL'?j.lSh:j.rSh;return j.neck&&s?j.neck.clone().lerp(s,0.15).setY(Math.min(j.neck.y,s.y)):null;}
+  return j[n]||null;
+}
+function sideFrames(j){
+  const up=new THREE.Vector3(0,1,0);const sh=j.lSh.clone().sub(j.rSh).normalize();const hp=j.lHip.clone().sub(j.rHip).normalize();
+  const fwd=new THREE.Vector3().crossVectors(sh,up);fwd.y=0;if(fwd.lengthSq()<1e-6)fwd.set(0,0,1);fwd.normalize();
+  return {sh,hp,fwd,mix:sh.clone().add(hp).normalize()};
+}
+function hinge(u,l,fallback){const c=new THREE.Vector3().crossVectors(u,l);const k=c.length();return c.normalize().multiplyScalar(Math.min(1,k*3)).addScaledVector(fallback,Math.max(0,1-k*3)).normalize();}
+function sideOf(sd,f,A,B,j){
+  if(sd==='hip')return f.hp;if(sd==='sh')return f.sh;if(sd==='mix')return f.mix;if(sd==='fwd')return f.fwd;
+  const L=sd.endsWith('L')?'l':'r';
+  if(sd.startsWith('arm')){const u=j[L+'El'].clone().sub(j[L+'Sh']),lo=j[L+'Wr'].clone().sub(j[L+'El']);return hinge(u,lo,new THREE.Vector3().crossVectors(u.clone().normalize(),f.fwd));}
+  const u=j[L+'Kn'].clone().sub(j[L+'Hip']),lo=j[L+'An'].clone().sub(j[L+'Kn']);return hinge(u,lo,new THREE.Vector3().crossVectors(u.clone().normalize(),f.fwd.clone().negate()));
+}
+const JV={};for(const n of window.JOINTS)JV[n]=new THREE.Vector3();
+function retarget(d,f){
+  const C=d.char;if(!C)return;
+  window.JOINTS.forEach((n,i)=>JV[n].set(f[i*3],f[i*3+1],f[i*3+2]));
+  const fr=sideFrames(JV);const world_=new Map();
+  for(const bo of C.order){
+    const parentQ=world_.get(bo.parent)||null;const rb=C.restB.get(bo);
+    let wq;
+    if(rb){const [a,b,sd]=rb.map;const A=pt(JV,a),B=pt(JV,b);
+      wq=basisQ(B.clone().sub(A),sideOf(sd,fr,A,B,JV),new THREE.Quaternion()).multiply(rb.q).multiply(C.restQ.get(bo));}
+    else{const pq=parentQ||C.restQ.get(bo.parent)||new THREE.Quaternion();const prq=C.restQ.get(bo.parent);
+      const rest=prq?prq.clone().invert().multiply(C.restQ.get(bo)):C.restQ.get(bo).clone();wq=pq.clone().multiply(rest);}
+    world_.set(bo,wq);
+    const pq=world_.get(bo.parent)||C.restQ.get(bo.parent);
+    if(pq)bo.quaternion.copy(pq.clone().invert().multiply(wq));else bo.quaternion.copy(wq);
+  }
+  // place the hips, then lift or lower so the feet meet the floor like the source motion
+  const place=(y)=>{const tgt=new THREE.Vector3(JV.hips.x,y,JV.hips.z);C.root.updateMatrixWorld(true);
+    C.bones.Hips.position.copy(C.hipsParent.worldToLocal(world.localToWorld(tgt.clone())));C.root.updateMatrixWorld(true);};
+  place(JV.hips.y);
+  let mfoot=1e9;const tmp=new THREE.Vector3();for(const b of C.feet){b.getWorldPosition(tmp);world.worldToLocal(tmp);mfoot=Math.min(mfoot,tmp.y);}
+  const ours=Math.min(JV.lAn.y,JV.rAn.y,JV.lToe.y+0.04,JV.rToe.y+0.04)-0.06;
+  if(isFinite(mfoot))place(JV.hips.y+(ours-mfoot)*0.9);
+}
+async function attachChars(){
+  if(!S.charMode)return;
+  try{$('loading').hidden=false;$('loading').textContent=T('chLoading');
+    for(const d of S.dancers){if(d.char)continue;d.char=await makeChar(d.role==='solo'?'solo':d.role,d.role==='follow'?0.95:1);}
+    $('loading').hidden=true;
+  }catch(e){$('loading').textContent=T('chFail');setTimeout(()=>$('loading').hidden=true,2500);S.charMode=false;markChar();}
+  applyCharVis();applyFrame();
+}
+function applyCharVis(){for(const d of S.dancers){const useChar=S.charMode&&d.char&&!d.ghost;d.group.visible=!useChar;if(d.char)d.char.root.visible=useChar;}}
+function markChar(){$('chMan').setAttribute('aria-pressed',String(!S.charMode));$('chReal').setAttribute('aria-pressed',String(S.charMode));}
+
+/* ---------- data loading ---------- */
+const decoded={};
+const fileLoads={};
+function loadFile(fn){
+  if(fileLoads[fn])return fileLoads[fn];
+  return fileLoads[fn]=new Promise((res,rej)=>{const s=document.createElement('script');s.src=fn;s.onload=res;s.onerror=()=>{delete fileLoads[fn];rej();};document.head.appendChild(s);});
+}
+function getClip(k){
+  if(decoded[k])return decoded[k];
+  const c=window.__DATA[k];
+  const actors=c.actors.map(a=>{const bin=atob(a.data);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+    const s=new Int16Array(u.buffer);const f=new Float32Array(s.length);for(let i=0;i<s.length;i++)f[i]=s[i]/1000;return {role:a.role,f};});
+  const out={...META[k],actors};
+  if(actors.length===1&&GEN_PARTNER[k]){out.actors=[{role:'lead',f:actors[0].f},{role:'follow',f:makePartner(actors[0].f,META[k].frames,GEN_PARTNER[k]),gen:true}];out.gen=true;}
+  for(const a of out.actors)a.plants=detectPlants(a.f,out.frames,out.fps);
+  return decoded[k]=out;
+}
+/* foot plants: ankle near its lowest height and nearly still for at least 3 frames */
+function detectPlants(f,F,fps){
+  const n=window.JOINTS.length*3,res=[];
+  for(const sd of ['l','r']){
+    const an=J[sd+'An'],to=J[sd+'Toe'];const ys=[];for(let i=0;i<F;i++)ys.push(f[i*n+an*3+1]);
+    const sorted=ys.slice().sort((a,b)=>a-b);const thr=sorted[Math.floor(F*0.1)]+0.035;
+    let st=-1;
+    const close=(i)=>{if(st>=0&&i-st>=3){let x=0,z=0,c=0,dx=0,dz=0;for(let k=st;k<i;k++){const o=k*n;x+=(f[o+an*3]+f[o+to*3])/2;z+=(f[o+an*3+2]+f[o+to*3+2])/2;dx+=f[o+to*3]-f[o+an*3];dz+=f[o+to*3+2]-f[o+an*3+2];c++;}
+        const p={t:st/fps,te:i/fps,side:sd,x:x/c,z:z/c,ang:Math.atan2(dz,dx)};const q=res.filter(r=>r.side===sd).pop();
+        if(q&&p.t-q.te<0.14&&Math.hypot(p.x-q.x,p.z-q.z)<0.06){q.te=p.te;}else res.push(p);}st=-1;};
+    for(let i=0;i<F;i++){const o=i*n;let v=0;if(i>0){const p=(i-1)*n;v=Math.hypot(f[o+an*3]-f[p+an*3],f[o+an*3+2]-f[p+an*3+2])*fps;}
+      const ok=ys[i]<thr&&v<0.45;if(ok&&st<0)st=i;if(!ok)close(i);}
+    close(F);
+  }
+  return res.sort((a,b)=>a.t-b.t);
+}
+/* Generated partner: the follow mirrors the lead across the lead's frontal plane (closed-position opposition:
+   lead steps forward with the left, follow steps back with the right), stands D metres in front, slightly smaller. */
+function makePartner(f,F,D){
+  const NJ=window.JOINTS.length,n=NJ*3,out=new Float32Array(f.length);
+  const ang=new Float32Array(F);let prev=0;
+  for(let i=0;i<F;i++){const o=i*n;const sx=f[o+J.lSh*3]-f[o+J.rSh*3],sz=f[o+J.lSh*3+2]-f[o+J.rSh*3+2];
+    let a=Math.atan2(sx,-sz);if(i){while(a-prev>Math.PI)a-=2*Math.PI;while(a-prev<-Math.PI)a+=2*Math.PI;}ang[i]=prev=a;}
+  const W=12,sm=new Float32Array(F);
+  for(let i=0;i<F;i++){let s=0,c=0;for(let k=Math.max(0,i-W);k<=Math.min(F-1,i+W);k++){s+=ang[k];c++;}sm[i]=s/c;}
+  const swap=window.JOINTS.map(nm=>{const m=nm[0]==='l'&&nm[1]===nm[1].toUpperCase()?'r'+nm.slice(1):nm[0]==='r'&&nm[1]===nm[1].toUpperCase()?'l'+nm.slice(1):nm;return J[m]??J[nm];});
+  const SC=0.94;
+  for(let i=0;i<F;i++){const o=i*n;const fx=Math.cos(sm[i]),fz=Math.sin(sm[i]);const rx=f[o],rz=f[o+2];
+    for(let j=0;j<NJ;j++){const x=f[o+j*3]-rx,y=f[o+j*3+1],z=f[o+j*3+2]-rz;const d=x*fx+z*fz;
+      const mx=(x-2*d*fx)*SC,mz=(z-2*d*fz)*SC;const t=o+swap[j]*3;
+      out[t]=rx+D*fx+mx;out[t+1]=y*SC;out[t+2]=rz+D*fz+mz;}}
+  return out;
+}
+let samba=null,sambaLoading=null;
+function loadSamba(){
+  if(sambaLoading)return sambaLoading;
+  sambaLoading=new Promise((res,rej)=>{
+    const go=()=>{const bin=atob(window.MICHELLE_B64);const u=new Uint8Array(bin.length);for(let i=0;i<bin.length;i++)u[i]=bin.charCodeAt(i);
+      new GLTFLoader().parse(u.buffer,'',gltf=>{
+        const root=gltf.scene;root.traverse(o=>{if(o.isMesh){o.castShadow=true;o.receiveShadow=true;}});
+        const mixer=new THREE.AnimationMixer(root);const clip=gltf.animations.find(a=>/samba/i.test(a.name))||gltf.animations[0];
+        const action=mixer.clipAction(clip);action.play();mixer.update(0);
+        let hipBone=null;root.traverse(o=>{if(o.isBone&&!hipBone&&/hips/i.test(o.name))hipBone=o;});
+        root.updateMatrixWorld(true);const hy=hipBone?hipBone.getWorldPosition(new THREE.Vector3()).y:0;
+        if(hy>0.01)root.scale.multiplyScalar(0.95/hy);
+        samba={root,mixer,action,dur:clip.duration,hipBone};res(samba);
+      },rej);};
+    loadFile('michelle.js').then(go,rej);
+  });
+  sambaLoading.catch(()=>{sambaLoading=null;});
+  return sambaLoading;
+}
+
+/* ---------- state ---------- */
+const music=new window.Music();
+const S={dance:null,fig:null,take:0,clipKey:null,clip:null,dancers:[],t:0,a:0,b:1,playing:true,speed:1,mode:'duo',role:'lead',focus:'both',charMode:false,mirror:false,follow:true,loop:true,token:0};
+
+function visibleActors(){
+  if(!S.clip||S.clipKey==='samba')return[];
+  if(S.clip.actors.length<2)return[0];
+  if(S.mode==='duo')return[0,1];
+  return[S.clip.actors.findIndex(a=>a.role===S.role)];
+}
+function focusDancer(){if(S.dancers.length<2||S.focus==='both')return null;return S.dancers.find(d=>d.role===S.focus)||null;}
+function applyFocus(){for(const d of S.dancers)setGhost(d,S.dancers.length>1&&S.focus!=='both'&&d.role!==S.focus);}
+function rebuildDancers(){
+  for(const d of S.dancers){world.remove(d.group);if(d.char)world.remove(d.char.root);}S.dancers=[];
+  if(!S.clip||S.clipKey==='samba')return;
+  for(const i of visibleActors()){const r=S.clip.actors[i].role;const d=makeDancer(r==='solo'?'solo':r);d.idx=i;S.dancers.push(d);}
+  applyFocus();
+  if(S.charMode)attachChars();
+}
+function clipDur(){return S.clipKey==='samba'?(samba?samba.dur:1):S.clip.frames/S.clip.fps;}
+
+async function setClip(k,startT,a,b){
+  const tok=++S.token;
+  if(samba)samba.root.visible=false;
+  if(k==='samba'){
+    $('loading').hidden=false;$('loading').textContent=T('loadingChar');
+    try{await loadSamba();}catch(e){$('loading').textContent=T('charFail');return;}
+    if(tok!==S.token)return;
+    if(!world.children.includes(samba.root))world.add(samba.root);samba.root.visible=true;
+    S.clip={fps:30,frames:Math.round(samba.dur*30),actors:[]};
+  } else {
+    const d=DANCES[S.dance];
+    if(!decoded[k]&&(!window.__DATA||!window.__DATA[k])){$('loading').hidden=false;$('loading').textContent=T('loadingDancers');
+      try{await loadFile(d.file);}catch(e){$('loading').textContent=T('loadFail');return;}
+      if(tok!==S.token)return;}
+    S.clip=getClip(k);
+  }
+  $('loading').hidden=true;
+  S.clipKey=k;S.t=startT||0;S.a=a??0;S.b=b??clipDur();lastBeat=null;
+  rebuildDancers();
+  const m=META[k];music.setGrid(DANCES[S.dance].style,m.bpm,m.off);
+  setBadge();
+  updateModeUI();applyFrame();snapCam(S.view||'front');armStop();practiceNote();
+}
+
+function setBadge(){const m=META[S.clipKey];if(!m)return;if(String(S.clipKey).startsWith('user_')||String(S.clipKey).startsWith('cap_')){$('nowBadge').textContent=LANG==='en'?'FROM VIDEO':'影片動作';return;}$('nowBadge').textContent=S.clipKey==='samba'?T('badgeChar'):DANCES[S.dance].synth?T('badgeSyn',{bpm:Math.round(m.bpm)}):`MOCAP · ${Math.round(m.bpm)} BPM`;}
+function setDesc(){const d=DANCES[S.dance];
+  if(S.fig===null){$('desc').textContent=d.synth||d.skinned?T('freeDescSyn',{src:SRC(d)}):T('freeDesc',{n:d.takes.length,src:SRC(d)});}
+  else{const f=d.figs[S.fig];$('desc').textContent=f.user?T('mineDesc'):LANG==='en'?(f.den||f.en):`${f.en}　${f.desc}`;}
+  $('userFigRow').hidden=!(S.fig!==null&&d.figs[S.fig]&&d.figs[S.fig].user&&!d.figs[S.fig].temp);}
+function applyLang(){
+  if(typeof practiceNote==='function'&&S.dance)setTimeout(practiceNote,0);
+  document.documentElement.lang=LANG==='en'?'en':'zh-Hant';
+  document.querySelectorAll('[data-i18n]').forEach(e=>e.textContent=T(e.dataset.i18n));
+  document.querySelectorAll('[data-i18n-aria]').forEach(e=>e.setAttribute('aria-label',T(e.dataset.i18nAria)));
+  $('langZh').setAttribute('aria-pressed',String(LANG==='zh'));$('langEn').setAttribute('aria-pressed',String(LANG==='en'));
+  document.querySelectorAll('.dance').forEach(b=>b.textContent=DN(DANCES[b.dataset.id]));
+  document.querySelectorAll('.dances .grp').forEach(e=>e.textContent=LANG==='en'?e.dataset.en:e.dataset.zh);
+  if(S.dance){$('nowName').textContent=DN(DANCES[S.dance]);renderFigs();renderVideos();markFig();setDesc();setBadge();updateModeUI();applyFrame();renderSongs();}
+  $('musicBtn').textContent=song.on?T('musicOff'):T('musicOn');
+  for(const id of ['play','stagePlay'])$(id).setAttribute('aria-label',S.playing?T('pause'):T('play'));
+}
+function setLang(l){LANG=l;try{localStorage.setItem('dance-lang',l);}catch(e){}applyLang();}
+function selectDance(id){
+  if(typeof removeTemp==='function'){removeTemp();}
+  setTimeout(()=>{if(cap&&cap.res)$('capAdd').textContent=T('capAddTo',{d:DN(DANCES[S.dance])});},0);
+  S.dance=id;S.fig=null;S.take=0;
+  document.querySelectorAll('.dance').forEach(b=>b.setAttribute('aria-pressed',b.dataset.id===id));
+  const d=DANCES[id];$('nowName').textContent=DN(d);
+  renderFigs();selectFree();vcat=id;renderVideos();
+  renderSongs();
+  try{localStorage.setItem('dance-id',id);}catch(e){}
+}
+function selectFree(){
+  S.fig=null;S.take=0;markFig();
+  const d=DANCES[S.dance];
+  setDesc();
+  setClip(d.takes[0].clip,0);
+}
+function selectFig(i){
+  const f=DANCES[S.dance].figs[i];S.fig=i;markFig();
+  setDesc();
+  setClip(f.clip,f.a,f.a,f.b);
+}
+function markFig(){document.querySelectorAll('.figbtn').forEach(b=>b.setAttribute('aria-pressed',String(S.fig===null?b.dataset.i==='free':b.dataset.i===String(S.fig))));}
+
+function renderFigs(){
+  const d=DANCES[S.dance];const box=$('figs');box.innerHTML='';
+  const fr=document.createElement('button');fr.className='figbtn free';fr.dataset.i='free';
+  const tot=d.takes.reduce((s,t)=>s+(META[t.clip].frames/META[t.clip].fps||0),0);
+  fr.innerHTML=`<b>${T('free')}</b><span>${d.skinned?T('fullOne'):d.synth?T('secs',{s:Math.round(tot)}):T('takesSecs',{n:d.takes.length,s:Math.round(tot)})}</span>`;
+  fr.onclick=selectFree;box.appendChild(fr);
+  d.figs.forEach((f,i)=>{const b=document.createElement('button');b.className='figbtn';b.dataset.i=String(i);
+    const pair=META[f.clip].pair;
+    b.innerHTML=`<b>${FN(f)}${f.of>1?` ${f.ex}`:''}</b>${LANG==='en'||f.user?'':`<i>${f.en}</i>`}<span>${f.user?`<span class="mine">${T('mineTag')}</span> · `+(META[f.clip].pair?T('pairTag')+' · ':''):d.synth?`<span class="gen">${T('synthTag')}</span> · `:pair?(META[f.clip].gen?`<span class="gen">${T('genPartner')}</span> · `:T('pairTag')+' · '):''}${T('secs',{s:(f.b-f.a).toFixed(1)})}</span>`;
+    b.onclick=()=>selectFig(i);box.appendChild(b);});
+  $('figHint').textContent=d.figs.length?T('figCount',{n:d.figs.length}):T('onlyOne');
+  $('loop').parentElement.hidden=!d.figs.length;
+}
+
+function updateModeUI(){
+  const pair=S.clip&&S.clip.actors.length>1;
+  $('mDuo').disabled=!pair;
+  $('mSolo').setAttribute('aria-pressed',String(!pair||S.mode==='solo'));
+  $('mDuo').setAttribute('aria-pressed',String(!!pair&&S.mode==='duo'));
+  $('roleRow').hidden=!(pair&&S.mode==='solo');
+  $('focusRow').hidden=!(pair&&S.mode==='duo');
+  $('fBoth').setAttribute('aria-pressed',String(S.focus==='both'));$('fLead').setAttribute('aria-pressed',String(S.focus==='lead'));$('fFollow').setAttribute('aria-pressed',String(S.focus==='follow'));
+  $('rLead').setAttribute('aria-pressed',String(S.role==='lead'));$('rFollow').setAttribute('aria-pressed',String(S.role==='follow'));
+  const gen=S.clip&&S.clip.gen;const cat=DANCES[S.dance].cat;
+  const syn=DANCES[S.dance].synth;
+  const chn=S.charMode?' '+T('chNote'):'';
+  $('note').innerHTML=(!pair?(PAIRCATS.includes(cat)?T('noteOneSocial'):T('noteSoloDance')):
+    S.mode==='duo'?((S.focus!=='both'?T('focusNote',{who:S.focus==='lead'?T('whoLead'):T('whoFollow')})+' ':'')+(syn?T('noteSyn'):gen?T('noteGen'):T('noteReal')))
+    :T('noteRole',{part:S.role==='lead'?T('leadLong'):T('followLong'),gen:(gen&&S.role==='follow')||syn?T('genShort'):''}))+chn;
+}
+
+/* ---------- frame ---------- */
+const frameBuf=new Float32Array(window.JOINTS.length*3);const centroid=V();
+function applyFrame(){
+  if(!S.clip)return;centroid.set(0,0,0);
+  if(S.clipKey==='samba'){
+    if(samba){samba.action.time=S.t%samba.dur;samba.mixer.update(0);if(samba.hipBone){samba.hipBone.getWorldPosition(centroid);centroid.y=S.camY||0.95;}}
+  } else {
+    const c=S.clip;const fpos=Math.min(Math.max(S.t*c.fps,0),c.frames-1.001);const i0=Math.floor(fpos),k=fpos-i0,i1=Math.min(i0+1,c.frames-1);
+    const n=window.JOINTS.length*3;
+    for(const d of S.dancers){const f=c.actors[d.idx].f;
+      for(let j=0;j<n;j++)frameBuf[j]=f[i0*n+j]*(1-k)+f[i1*n+j]*k;
+      poseDancer(d,frameBuf);if(d.char&&!d.ghost)retarget(d,frameBuf);d.hx=frameBuf[0];d.hz=frameBuf[2];
+      d.fx=-(frameBuf[J.lSh*3+2]-frameBuf[J.rSh*3+2]);d.fz=frameBuf[J.lSh*3]-frameBuf[J.rSh*3];}
+    const foc=focusDancer();const cs=foc?[foc]:S.dancers;
+    for(const d of cs){centroid.x+=d.hx;centroid.z+=d.hz;}
+    centroid.multiplyScalar(1/Math.max(1,cs.length));centroid.y=S.camY||0.95;
+  }
+  if(S.mirror)centroid.x*=-1;
+  const span=S.b-S.a,rel=S.t-S.a;
+  $('scrub').value=Math.round(rel/span*1000);
+  $('time').textContent=`${Math.max(0,rel).toFixed(1)} / ${span.toFixed(1)} s`;
+  const d=DANCES[S.dance];
+  if(S.fig!==null){const f=d.figs[S.fig];$('nowFig').innerHTML=`${FN(f)}${f.of>1?` ${f.ex}`:''}${LANG==='en'||f.user?'':`<em>${f.en}</em>`}`;}
+  else{const hit=d.figs.find(f=>f.clip===S.clipKey&&f.of&&S.t>=f.a+0.4&&S.t<=f.b-0.4);
+    const take=d.takes[S.take];
+    $('nowFig').innerHTML=`${T('free')} · ${TN(take)}${hit?`<em>${FN(hit)}</em>`:''}`;}
+}
+function advance(dt){
+  S.t+=dt*effSpeed();
+  if(S.stepMode&&S.stopAt!==null&&S.t>=S.stopAt){S.t=S.stopAt;S.stopAt=null;applyFrame();setPlaying(false);return;}
+  if(S.t>=S.b){
+    if(S.fig!==null){if(S.loop){S.t=S.a;music.reset();armStop();}else{S.t=S.b;setPlaying(false);}}
+    else if(S.clipKey==='samba'){S.t=0;S.b=clipDur();music.reset();}
+    else{const d=DANCES[S.dance];S.take=(S.take+1)%d.takes.length;setClip(d.takes[S.take].clip,0);return;}
+  }
+  applyFrame();
+}
+
+/* ---------- camera ---------- */
+function facing(){
+  if(!S.clip||S.clipKey==='samba'||!S.dancers.length)return new THREE.Vector3(0,0,1);
+  const foc=focusDancer()||S.dancers[0];
+  const fw=new THREE.Vector3(foc.fx,0,foc.fz).normalize();if(S.mirror)fw.x*=-1;
+  if(S.dancers.length>1&&!focusDancer()){const a=S.dancers[0],b=S.dancers[1];let dx=b.hx-a.hx,dz=b.hz-a.hz;if(S.mirror)dx=-dx;const L=Math.hypot(dx,dz)||1;fw.set(-dz/L,0,dx/L);}
+  return fw.lengthSq()>0.5?fw:new THREE.Vector3(0,0,1);
+}
+function snapCam(kind){
+  S.view=kind;S.camY=kind==='feet'?0.25:0.95;centroid.y=S.camY;
+  const foc=focusDancer()||S.dancers[0];
+  let own=new THREE.Vector3(0,0,1);if(foc&&foc.fx!==undefined){own.set(foc.fx,0,foc.fz).normalize();if(S.mirror)own.x*=-1;}
+  const fw=facing();const duo=S.dancers.length>1;
+  controls.target.copy(centroid.lengthSq()?centroid:new THREE.Vector3(0,S.camY,0));
+  let dir,dist=duo?5.6:4.6;
+  if(kind==='side')dir=new THREE.Vector3(fw.z,0.22,-fw.x);
+  else if(kind==='top')dir=fw.clone().multiplyScalar(0.35).add(new THREE.Vector3(0,1,0));
+  else if(kind==='back'){dir=own.clone().multiplyScalar(-1);dir.y=0.32;dist=duo?3.8:3.4;}
+  else if(kind==='feet'){if(duo){const A_=S.dancers[0],B_=S.dancers[1];let dx=B_.hx-A_.hx,dz=B_.hz-A_.hz;if(S.mirror)dx=-dx;const L=Math.hypot(dx,dz)||1;dir=new THREE.Vector3(-dz/L,0,dx/L);}else dir=own.clone();dir.y=0.2;dist=duo?3.0:2.5;}
+  else{dir=fw.clone();dir.y=0.22;}
+  dir.normalize();camera.position.copy(controls.target).addScaledVector(dir,dist);controls.update();
+}
+
+/* ---------- UI wiring ---------- */
+for(const [g,ge] of GROUPS){const lab=document.createElement('span');lab.className='label grp';lab.dataset.zh=g;lab.dataset.en=ge;lab.textContent=g;$('dances').appendChild(lab);
+for(const id of ORDER){const d=DANCES[id];if(!d||d.grp!==g)continue;const b=document.createElement('button');b.className='dance';b.dataset.id=id;b.textContent=DN(d);b.setAttribute('aria-pressed','false');b.onclick=()=>selectDance(id);$('dances').appendChild(b);}}
+function setPlaying(v){S.playing=v;for(const id of ['play','stagePlay']){$(id).textContent=v?'❚❚':'▶';$(id).setAttribute('aria-label',v?T('pause'):T('play'));}music.reset();song.sync();const pv=$('pipVideo');if(!$('pip').hidden){v?pv.play().catch(()=>{}):pv.pause();}}
+$('play').onclick=$('stagePlay').onclick=()=>{if(!S.playing&&S.t>=S.b-0.01)S.t=S.a;if(!S.playing)armStop();setPlaying(!S.playing);};
+/* space bar toggles play/pause unless typing or a control has focus */
+document.addEventListener('keydown',e=>{if(e.code!=='Space'||e.repeat||e.target.closest?.('input,textarea,select,button,[role=button],video'))return;e.preventDefault();$('play').click();});
+$('scrub').oninput=e=>{S.t=S.a+e.target.value/1000*(S.b-S.a);music.reset();applyFrame();};
+$('speed').oninput=e=>{S.speed=+e.target.value;$('speedOut').textContent=S.speed.toFixed(2)+'×';music.reset();};
+$('loop').onchange=e=>{S.loop=e.target.checked;};
+$('chMan').onclick=()=>{S.charMode=false;markChar();applyCharVis();$('note').dataset.ch='';updateModeUI();};
+$('chReal').onclick=()=>{S.charMode=true;markChar();attachChars();updateModeUI();};
+const setFocus=f=>{S.focus=f;applyFocus();updateModeUI();applyFrame();snapCam(S.view||'front');armStop();};
+$('fBoth').onclick=()=>setFocus('both');$('fLead').onclick=()=>setFocus('lead');$('fFollow').onclick=()=>setFocus('follow');
+$('mSolo').onclick=()=>{S.mode='solo';rebuildDancers();updateModeUI();applyFrame();};
+$('mDuo').onclick=()=>{S.mode='duo';rebuildDancers();updateModeUI();applyFrame();};
+$('rLead').onclick=()=>{S.role='lead';rebuildDancers();updateModeUI();applyFrame();};
+$('rFollow').onclick=()=>{S.role='follow';rebuildDancers();updateModeUI();applyFrame();};
+$('mirror').onchange=e=>{S.mirror=e.target.checked;world.scale.x=S.mirror?-1:1;applyFrame();};
+$('follow').onchange=e=>{S.follow=e.target.checked;};
+for(const [id,k] of [['camFront','front'],['camBack','back'],['camSide','side'],['camTop','top'],['camFeet','feet']])$(id).onclick=()=>{snapCam(k);markView();};
+function markView(){for(const [id,k] of [['camFront','front'],['camBack','back'],['camSide','side'],['camTop','top'],['camFeet','feet']])$(id).setAttribute('aria-pressed',String((S.view||'front')===k));}
+markView();
+/* ---------- music: built-in accompaniment or the viewer's own songs ---------- */
+const song={list:[],cur:null,on:false,audio:new Audio(),vol:0.7,taps:[],
+  db:null,
+  async openDB(){try{this.db=await new Promise((res,rej)=>{const r=indexedDB.open('dance-songs',2);r.onupgradeneeded=()=>{for(const n of ['songs','moves'])if(!r.result.objectStoreNames.contains(n))r.result.createObjectStore(n,{keyPath:'id'});};r.onsuccess=()=>res(r.result);r.onerror=()=>rej(r.error);});}catch(e){this.db=null;}},
+  async load(){await this.openDB();if(!this.db)return;try{const all=await new Promise((res,rej)=>{const q=this.db.transaction('songs').objectStore('songs').getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});
+    for(const r of all)this.list.push({...r,url:URL.createObjectURL(r.blob)});}catch(e){}renderSongs();},
+  save(r){if(r.stream){try{localStorage.setItem('bpm:'+r.id,r.bpm);}catch(e){}return;}try{if(this.db)this.db.transaction('songs','readwrite').objectStore('songs').put({id:r.id,name:r.name,bpm:r.bpm,blob:r.blob});}catch(e){}},
+  remove(id){try{if(this.db)this.db.transaction('songs','readwrite').objectStore('songs').delete(id);}catch(e){}},
+  factor(){
+    if(!this.cur||!this.on||!$('sync').checked||!S.clip)return null;
+    const cb=META[S.clipKey]?.bpm;if(!cb)return null;
+    let f=this.cur.bpm/cb;while(f>1.45)f/=2;while(f<0.68)f*=2;return f;
+  },
+  tracks(){const L=window.MUSIC_TRACKS[DANCES[S.dance]?.style]||[];
+    for(const r of L)if(!r.bpm0){r.bpm0=r.bpm;try{const v=+localStorage.getItem('bpm:'+r.id);if(v)r.bpm=v;}catch(e){}}return L;},
+  sync(){
+    const a=this.audio;
+    if(this.cur&&this.on&&S.playing){if(a.src!==this.cur.url){a.src=this.cur.url;a.loop=true;}a.volume=this.vol;a.play().catch(()=>{$('musicNote').textContent=T('blocked');});}
+    else a.pause();
+  },
+  tickUI(){const f=this.factor();const el=$('speed');
+    if(f){el.disabled=true;$('speedOut').textContent=f.toFixed(2)+'×';}
+    else if(el.disabled){el.disabled=false;$('speedOut').textContent=S.speed.toFixed(2)+'×';}}
+};
+function effSpeed(){return song.factor()??S.speed;}
+
+async function detectBPM(buf){
+  const ctx=new (window.OfflineAudioContext||window.webkitOfflineAudioContext)(1,44100,44100);
+  const ab=await new Promise((res,rej)=>{const p=ctx.decodeAudioData(buf,res,rej);if(p&&p.then)p.then(res,rej);});
+  const sr=ab.sampleRate,ch=ab.getChannelData(0),hop=512,start=Math.min(Math.floor(ab.duration*0.15),20)*sr,end=Math.min(ch.length,start+60*sr);
+  const env=[];let prev=0;
+  for(let i=start;i+hop<end;i+=hop){let e=0;for(let k=0;k<hop;k++){const v=ch[i+k];e+=v*v;}const l=Math.log(1e-9+e);env.push(Math.max(0,l-prev));prev=l;}
+  const fr=sr/hop;let best=120,bv=-1;
+  for(let bpm=70;bpm<=180;bpm+=0.5){const lag=60/bpm*fr;const L=Math.floor(lag),w=lag-L;let s=0;
+    for(let i=0;i+L+1<env.length;i++)s+=env[i]*(env[i+L]*(1-w)+env[i+L+1]*w);
+    s/=env.length-L;const pr=Math.exp(-Math.pow(Math.log2(bpm/120),2)/(2*0.5*0.5));
+    if(s*pr>bv){bv=s*pr;best=bpm;}}
+  return Math.round(best);
+}
+
+function renderSongs(){
+  const box=$('songs');box.innerHTML='';
+  const mk=(r)=>{const b=document.createElement('div');b.className='song';b.setAttribute('role','button');b.tabIndex=0;
+    b.setAttribute('aria-pressed',String(r?song.cur===r:!song.cur));
+    const st=window.MUSIC_STYLES[DANCES[S.dance]?.style||'salsa'];
+    b.innerHTML=r?`<span class="nm"></span><span class="bpm">${r.bpm} BPM</span>${r.stream?'<span></span>':`<button class="x" aria-label="${T('removeSong')}">×</button>`}`
+      :`<span class="nm">${T('builtin')}</span><span class="bpm">${T('autoStyle')}</span><span></span>`;
+    if(r)b.querySelector('.nm').textContent=r.name;
+    b.onclick=e=>{if(e.target.closest('.x')){song.list=song.list.filter(x=>x!==r);song.remove(r.id);if(song.cur===r){song.cur=null;}URL.revokeObjectURL(r.url);applySource();return;}
+      song.cur=r;applySource();};
+    b.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();b.click();}};
+    box.appendChild(b);};
+  const grp=t=>{const h=document.createElement('div');h.className='grp';h.textContent=t;box.appendChild(h);};
+  const tr=song.tracks();
+  /* a streamed track follows the dance: switching dances picks that dance's first track */
+  if(song.cur?.stream&&!tr.includes(song.cur)){song.cur=tr[0]||null;music.setOn(!song.cur&&song.on);song.sync();}
+  mk(null);
+  if(tr.length){grp(T('realRec'));tr.forEach(mk);}
+  if(song.list.length){grp(T('mySongs'));song.list.forEach(mk);}
+  $('songCtl').hidden=!song.cur;if(song.cur)$('bpmVal').textContent=song.cur.bpm;
+  musicLabel();
+}
+function applySource(){
+  music.setOn(!song.cur&&song.on);song.sync();renderSongs();
+}
+function musicLabel(){
+  const st=window.MUSIC_STYLES[DANCES[S.dance].style];
+  $('musicState').textContent=song.on?T('playing'):T('stopped');
+  if(!song.on){$('musicNote').textContent=T('pickHint');return;}
+  if(song.cur){const f=song.factor();$('musicNote').textContent=(f?T('synced',{bpm:song.cur.bpm,f:f.toFixed(2)}):T('unsynced'))+(song.cur.credit?' '+song.cur.credit:'');}
+  else $('musicNote').textContent=`${LANG==='en'?st.label_en:st.label}${LANG==='en'?'.':'。'}`;
+}
+$('musicBtn').onclick=()=>{song.on=!song.on;
+  if(!song.cur&&!music.setOn(song.on)){$('musicNote').textContent=T('noAudio');song.on=false;}
+  if(song.cur)music.setOn(false);
+  $('musicBtn').setAttribute('aria-pressed',String(song.on));$('musicBtn').textContent=song.on?T('musicOff'):T('musicOn');song.sync();musicLabel();};
+$('vol').oninput=e=>{const v=+e.target.value;music.setVol(v);song.vol=v;song.audio.volume=v;$('volOut').textContent=Math.round(v*100)+'%';};
+$('addSong').onclick=()=>$('songFile').click();
+$('songFile').onchange=async e=>{
+  const files=[...e.target.files];e.target.value='';
+  for(const file of files){
+    $('musicNote').textContent=T('analyzing',{name:file.name});
+    let bpm=120;try{bpm=await detectBPM(await file.arrayBuffer());}catch(err){$('musicNote').textContent=T('badFile',{name:file.name});continue;}
+    const r={id:Date.now()+'-'+Math.random().toString(36).slice(2,7),name:file.name.replace(/\.[^.]+$/,''),bpm,blob:file,url:URL.createObjectURL(file)};
+    song.list.push(r);song.save(r);song.cur=r;
+  }
+  applySource();
+};
+const setBpm=v=>{if(!song.cur)return;song.cur.bpm=Math.max(40,Math.min(240,Math.round(v)));song.save(song.cur);$('bpmVal').textContent=song.cur.bpm;renderSongs();};
+$('bpmDown').onclick=()=>setBpm(song.cur.bpm-1);$('bpmUp').onclick=()=>setBpm(song.cur.bpm+1);
+$('tap').onclick=()=>{const t=performance.now();song.taps=song.taps.filter(x=>t-x<3000);song.taps.push(t);
+  if(song.taps.length>=4){const d=(song.taps[song.taps.length-1]-song.taps[0])/(song.taps.length-1);setBpm(60000/d);}};
+$('sync').onchange=()=>{musicLabel();};
+song.audio.onerror=()=>{if(song.cur?.stream&&song.on)$('musicNote').textContent=T('streamFail');};
+song.audio.onwaiting=()=>{if(song.cur?.stream&&song.on)$('musicNote').textContent=T('streamLoading',{name:song.cur.name});};
+song.audio.onplaying=()=>musicLabel();
+document.addEventListener('click',e=>{if(e.target.closest('.dance')||e.target.closest('.figbtn'))setTimeout(musicLabel,0);});
+
+
+/* ---------- real dancer videos (YouTube links; the page cannot embed other sites) ---------- */
+const VIDEOS={
+ salsa:[['wV8cDpJa2f4','薩爾薩基本步（給完全新手）','Salsa basic step for absolute beginners','en'],['t_clXFnHJEU','薩爾薩入門：On1 基本步','How to salsa for beginners (On1)','en'],['0By6VuRC1qI','交叉換位 Cross Body Lead 入門','Beginner cross body lead','en'],['PYtE2uJlZnY','交叉換位接轉圈（男女分解）','Cross body lead with turn, lead and follow breakdown','en']],
+ bachata:[['xhrdh-uFkog','巴恰塔基本步入門','Bachata beginner basic steps','en'],['sDM4v2iGq-s','巴恰塔雙人基本步','Bachata basic step with a partner','en'],['bUwKTYQMGvM','10 個巴恰塔新手舞步','10 bachata steps for beginners','en']],
+ jive:[['XNtmkUQ8eaE','吉魯巴新手舞步','Jive steps for beginners','en'],['WK_FAf6ns0c','12 分鐘學吉魯巴基本技巧','Basic jive technique in 12 minutes','en'],['nWsGcmgkgr4','吉魯巴十大基本步與套路','Top ten basic jive steps and routine','en'],['HnQ7U31Feks','接下來可以學的 5 個吉魯巴舞步','5 jive steps to learn next','en']],
+ twjive:[['-rAAmlhhIJ4','吉魯巴基本步：六小節','Taiwanese jitterbug: six-count basic','zh'],['t8RzDbHSKQE','六步吉魯巴 花步 1～20（完整）','Six-step jitterbug, fancy figures 1–20','zh'],['e5JLy9CAMSA','三步吉魯巴 花步 1～31（完整）','Three-step jitterbug, fancy figures 1–31','zh']],
+ swing:[['XRmwURoKFrQ','林迪舞入門：查爾斯頓節奏','Lindy hop for beginners: Charleston rhythm','en'],['urM_KBbuyCc','查爾斯頓基本步與牽手查爾斯頓','Basic and hand-to-hand Charleston','en'],['Aba3f1vbez4','並排查爾斯頓','Side-by-side Charleston','en']],
+ lambada:[['txsCM0lU6T8','4 分鐘學黃金舞','How to dance lambada in 4 minutes','en'],['uIbpsAMgpvI','黃金舞基本步 1','Lambada basic 1','en']],
+ waltz:[['NBKTN6c_MEQ','華爾滋方塊步入門','Waltz box step for beginners','en'],['ln2Ff4ScKaM','華爾滋方塊步與轉身方塊步','Waltz box step and turning box','en']],
+ tango:[['u8EcUm-wJCw','探戈新手基本步','Tango basic steps for beginners','en'],['MVbwfEXwqsY','探戈必學的 3 個基本','3 tango basics you need to know','en']],
+ vwaltz:[['n4E5eggBwUg','維也納華爾滋新手速成','Viennese waltz basics crash course','en'],['DZn1ogwbAQA','維也納華爾滋右轉與左轉','Viennese waltz natural and reverse turns','en'],['qApfCA391ck','維也納華爾滋基本套路（含慢動作）','Viennese waltz basic routine with slow motion','en']],
+ quickstep:[['5y7XQ3_3iK4','快步舞基本步','Basic quickstep to learn at home','en'],['Iydy6QxY_Us','快步舞基本腳法','Basic quickstep footwork','en'],['TdLIW3cTWfE','快步舞基本套路解說','Quickstep basic routine walkthrough','en']],
+ paso:[['enh5bkWmYV0','鬥牛舞新手單人練習套路','Beginner paso doble solo practice routine','en'],['nN52QECLr2Q','鬥牛舞十大基本步與套路','Paso doble top ten steps and routine','en'],['iDr3evxcGVM','鬥牛舞新手走步','Paso doble beginner walks','en']],
+ bsamba:[['RS0OAz6icQM','國標森巴 5 個基本步','5 basic international samba steps','en'],['c5lEq9nJ8cg','森巴旁掃步 Whisks','Samba whisks tutorial','en'],['cPexT93vhK4','旁掃步完整解說','A complete guide to the samba whisk','en']],
+ chacha:[['LynE6RZhLkA','恰恰基本步','Cha cha basic steps','en'],['RQuniEFCoDc','7 個恰恰新手舞步','7 cha cha steps for beginners','en']],
+ rumba:[['PX9Avh3bpL4','7 個倫巴新手舞步','7 rumba steps for beginners','en'],['dRVXsyabQF0','倫巴基本步','Rumba basics','en']],
+ foxtrot:[['RYWZYILLxfI','7 個狐步新手舞步','7 foxtrot steps for beginners','en'],['YFeHFJCFyqE','狐步基本步','Foxtrot basic step','en']],
+ samba:[['6QfzEx-Fc9w','森巴基本腳步','Basic samba footwork','en'],['hpZhFgBhtcg','森巴腳步 Samba no pé','How to dance samba no pé','en']],
+ ballet:[['HzGmDMs3P1k','單足旋轉入門與旋轉基礎','Basic pirouette and turn fundamentals','en'],['RFHYswHiWLU','成人初學芭蕾：單足旋轉','Pirouettes for adult beginners','en']],
+ indian:[['vmwZ9R03bXs','婆羅多舞第一課：基本步 Thattadavu','Bharatanatyam lesson 1: thattadavu','en'],['ru5i0RXVKfY','婆羅多舞基本步','Bharatanatyam basic steps','en']],
+ break:[['QbykM-adLK8','Breaking 三元素：站立舞步、地板步、定格','Breaking basics: toprock, footwork, freeze','zh'],['KbtWKixraFQ','5 個新手站立舞步','5 beginner toprocks','en']]
+};
+const VCAT_NAMES={twjive:['台式吉魯巴','Taiwanese jitterbug']};
+let vcat=null;
+function catName(k){return DANCES[k]?DN(DANCES[k]):(VCAT_NAMES[k]?VCAT_NAMES[k][LANG==='en'?1:0]:k);}
+function renderVideos(){
+  const cur=S.dance;const cats=[cur].concat(cur==='jive'?['twjive']:[]);
+  const social=['waltz','tango','vwaltz','foxtrot','quickstep','chacha','bsamba','rumba','paso','jive','twjive','salsa','bachata','swing','lambada'];
+  const solo=['samba','ballet','indian','break'];
+  const order=(DANCES[cur]&&DANCES[cur].cat==='社交舞'?social:solo.concat(social)).filter(k=>!cats.includes(k));
+  if(!vcat||!VIDEOS[vcat])vcat=cur;
+  const box=$('vcats');box.innerHTML='';
+  for(const k of cats.concat(order)){if(!VIDEOS[k])continue;const b=document.createElement('button');b.className='vcat';b.textContent=k===cur?`${catName(k)} · ${T('thisDance')}`:catName(k);
+    b.setAttribute('aria-pressed',String(k===vcat));b.onclick=()=>{vcat=k;renderVideos();};box.appendChild(b);}
+  const L=$('vids');L.innerHTML='';
+  for(const [id,zh,en,lg] of VIDEOS[vcat]){const a=document.createElement('a');a.className='vlink';a.href='https://www.youtube.com/watch?v='+id;a.target='_blank';a.rel='noopener';
+    a.innerHTML=`<span class="pl" aria-hidden="true">▶</span><span class="t"></span><span class="lg">${lg==='zh'?T('zhVid'):T('enVid')} ↗</span>`;
+    a.querySelector('.t').textContent=LANG==='en'?en:zh;L.appendChild(a);}
+}
+/* the viewer's own video, played over the stage in sync with the 3D dancers */
+const pip={url:null,
+  sync(){const v=$('pipVideo');if($('pip').hidden)return;
+    const r=Math.max(0.25,Math.min(2,effSpeed()));if(Math.abs(v.playbackRate-r)>0.01)v.playbackRate=r;
+    v.style.transform=S.mirror?'scaleX(-1)':'';}};
+$('addVideo').onclick=()=>$('videoFile').click();
+$('videoFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;
+  if(pip.url)URL.revokeObjectURL(pip.url);pip.url=URL.createObjectURL(f);
+  const v=$('pipVideo');v.src=pip.url;$('pipName').textContent=f.name;$('pip').hidden=false;pip.sync();
+  $('musicNote').textContent=T('myVideoNote');if(S.playing)v.play().catch(()=>{});};
+$('pipClose').onclick=()=>{const v=$('pipVideo');v.pause();v.removeAttribute('src');v.load();$('pip').hidden=true;if(pip.url){URL.revokeObjectURL(pip.url);pip.url=null;}};
+
+
+/* ---------- footprints, beat counter, practice ---------- */
+const COUNTS={waltz:3,vwaltz:3,ballet:3,jive:6};
+const beatLen=()=>{const m=META[S.clipKey];return m?60/m.bpm:0.5;};
+const beatsPerBar=()=>COUNTS[DANCES[S.dance]?.style]||8;
+function countAt(t){const m=META[S.clipKey];if(!m)return null;const x=(t-m.off)/beatLen();const nb=beatsPerBar();
+  const i=Math.floor(x+1e-6);return {i,n:((i%nb)+nb)%nb+1,frac:x-i};}
+const fpGroup=new THREE.Group();world.add(fpGroup);
+const soleShape=(()=>{const sh=new THREE.Shape();sh.moveTo(-0.11,0);sh.bezierCurveTo(-0.115,0.035,-0.06,0.04,-0.02,0.036);
+  sh.bezierCurveTo(0.05,0.05,0.12,0.045,0.125,0.0);sh.bezierCurveTo(0.12,-0.04,0.05,-0.035,0.0,-0.032);sh.bezierCurveTo(-0.06,-0.03,-0.115,-0.035,-0.11,0);return sh;})();
+const soleGeo=new THREE.ShapeGeometry(soleShape,12);
+const FPCOL={lead:0x7f93c9,follow:0xe0607a,solo:0xd9a648};
+const labelTex={};
+function numTex(txt,col){const k=txt+col;if(labelTex[k])return labelTex[k];const c=document.createElement('canvas');c.width=c.height=64;const g=c.getContext('2d');
+  g.fillStyle='#'+col.toString(16).padStart(6,'0');g.beginPath();g.arc(32,32,28,0,7);g.fill();g.fillStyle='#14120f';g.font='bold 34px JetBrains Mono, monospace';g.textAlign='center';g.textBaseline='middle';g.fillText(txt,32,34);
+  const t=new THREE.CanvasTexture(c);t.colorSpace=THREE.SRGBColorSpace;return labelTex[k]=t;}
+const fpPool=[];
+function fpItem(i){
+  if(fpPool[i])return fpPool[i];
+  const g=new THREE.Group();const m=new THREE.Mesh(soleGeo,new THREE.MeshBasicMaterial({transparent:true,depthWrite:false,side:THREE.DoubleSide}));
+  m.rotation.x=-Math.PI/2;m.position.y=0.004;g.add(m);
+  const sp=new THREE.Sprite(new THREE.SpriteMaterial({transparent:true,depthWrite:false,depthTest:false}));sp.scale.set(0.11,0.11,1);g.add(sp);
+  fpGroup.add(g);return fpPool[i]={g,m,sp};
+}
+function updateFootprints(){
+  let used=0;
+  if($('showFeet').checked&&S.clip&&S.clipKey!=='samba'){
+    const look=Math.max(1.6,beatLen()*4)*1;const foc=focusDancer();
+    for(const d of S.dancers){
+      if(foc&&d!==foc)continue;const a=S.clip.actors[d.idx];if(!a.plants)continue;
+      const col=FPCOL[a.role]||FPCOL.solo;let shown=0;
+      for(const p of a.plants){
+        if(p.te<S.t-0.25||p.t>S.t+look)continue;if(shown>=5)break;shown++;
+        const it=fpItem(used++);it.g.visible=true;
+        it.g.position.set(p.x,0,p.z);it.g.rotation.y=-p.ang;
+        it.m.scale.set(1,p.side==='l'?1:-1,1);
+        const now=S.t>=p.t-0.02&&S.t<=p.te;const fut=p.t>S.t;
+        const op=now?0.95:fut?Math.max(0.22,0.8-(p.t-S.t)/look*0.6):Math.max(0,0.5-(S.t-p.te)*2);
+        it.m.material.color.setHex(col);it.m.material.opacity=op;
+        const c=countAt(p.t);const lbl=c?(c.frac>0.3&&c.frac<0.7?'&':String(c.frac>=0.7?((c.n)%beatsPerBar())+1:c.n)):'';
+        it.sp.material.map=numTex(lbl,col);it.sp.material.opacity=Math.min(1,op+0.1);it.sp.material.needsUpdate=true;
+        it.sp.position.set(-0.17,0.05,0);it.sp.visible=op>0.15;
+        if(S.mirror)it.sp.scale.set(-0.11,0.11,1);else it.sp.scale.set(0.11,0.11,1);
+      }
+    }
+  }
+  for(let i=used;i<fpPool.length;i++)fpPool[i].g.visible=false;
+}
+let lastBeat=null;
+function updateBeats(){
+  const box=$('beats');
+  if(!$('showBeats').checked||!S.clip){box.hidden=true;return;}box.hidden=false;
+  const nb=beatsPerBar();
+  if(box.childElementCount!==nb){box.innerHTML='';for(let i=1;i<=nb;i++){const e=document.createElement('span');e.textContent=i;if(i===1)e.className='one';box.appendChild(e);}}
+  const c=countAt(S.t);if(!c)return;
+  [...box.children].forEach((e,i)=>e.classList.toggle('on',i===c.n-1));
+  if(lastBeat!==null&&c.i!==lastBeat&&S.playing&&$('clickSound').checked&&music.ctx){
+    const w=music.ctx.currentTime+0.01;music.osc('sine',c.n===1?1760:1180,w,0.02,c.n===1?0.5:0.3,0.05);}
+  lastBeat=c.i;
+}
+/* step-by-step practice */
+S.stepMode=false;S.stopAt=null;
+function nextStop(){
+  const foc=focusDancer();let best=null;
+  for(const d of S.dancers){if(foc&&d!==foc)continue;for(const p of S.clip.actors[d.idx].plants||[]){if(p.t>S.t+0.06&&p.t<=S.b&&(best===null||p.t<best))best=p.t;}}
+  return best;
+}
+function armStop(){S.stopAt=S.stepMode&&S.clip&&S.clipKey!=='samba'?nextStop():null;}
+function practiceNote(){
+  const parts=[];if(S.stepMode)parts.push(T('stepNote'));if($('showFeet').checked)parts.push(T('feetNote'));
+  if(($('showFeet').checked||$('showBeats').checked)&&S.dance&&!DANCES[S.dance].synth)parts.push(T('mocapBeat'));
+  $('practiceNote').textContent=parts.join(' ');}
+const setPM=v=>{S.stepMode=v;$('pmCont').setAttribute('aria-pressed',String(!v));$('pmStep').setAttribute('aria-pressed',String(v));if(v){armStop();}else S.stopAt=null;practiceNote();};
+$('pmCont').onclick=()=>setPM(false);$('pmStep').onclick=()=>setPM(true);
+$('slowLoop').onclick=()=>{const on=$('slowLoop').getAttribute('aria-pressed')!=='true';$('slowLoop').setAttribute('aria-pressed',String(on));
+  S.speed=on?0.5:1;$('speed').value=S.speed;$('speedOut').textContent=S.speed.toFixed(2)+'×';S.loop=true;$('loop').checked=true;music.reset();};
+$('showFeet').onchange=practiceNote;$('showBeats').onchange=practiceNote;
+$('clickSound').onchange=e=>{if(e.target.checked){music.ensure();if(music.ctx&&music.ctx.state!=='running')music.ctx.resume();}};
+
+
+/* ---------- capture moves from video ---------- */
+const cap={file:null,res:null,people:1,swap:false,abort:null,count:0};
+function capErr(m){$('capErr').textContent=m||'';}
+function capReset(){$('capWork').hidden=true;$('capDone').hidden=true;capErr('');}
+$('capPick').onclick=()=>$('capFile').click();
+$('capFile').onchange=e=>{const f=e.target.files[0];e.target.value='';if(!f)return;cap.file=f;capReset();removeTemp();
+  $('capFileName').textContent=f.name;$('capOpts').hidden=false;
+  const v=document.createElement('video');v.preload='metadata';v.src=URL.createObjectURL(f);
+  v.onloadedmetadata=()=>{const d=v.duration||10;$('capStart').value=0;$('capEnd').value=Math.min(d,30).toFixed(1);$('capEnd').max=d;$('capStart').max=d;
+    $('capFileName').textContent=`${f.name} · ${T('capDur',{s:d.toFixed(1)})}`;URL.revokeObjectURL(v.src);};
+  v.onerror=()=>capErr(T('capVideoErr'));};
+const setPeople=n=>{cap.people=n;$('capP1').setAttribute('aria-pressed',String(n===1));$('capP2').setAttribute('aria-pressed',String(n===2));};
+$('capP1').onclick=()=>setPeople(1);$('capP2').onclick=()=>setPeople(2);
+$('capRun').onclick=async()=>{
+  if(!cap.file)return;capReset();removeTemp();$('capWork').hidden=false;$('capRun').hidden=true;$('capStop').hidden=false;
+  const ac=new AbortController();cap.abort=ac;$('capStatus').textContent=T('capLoading');$('capBar').style.width='0%';
+  try{
+    const mod=await import(new URL('capture.js',document.baseURI).href);
+    const st=Math.max(0,+$('capStart').value||0),en=Math.max(st+1,+$('capEnd').value||st+10);
+    cap.res=await mod.captureVideo(cap.file,{numPoses:cap.people,start:st,end:en,overlay:$('capCanvas'),signal:ac.signal,
+      onProgress:(p,ph)=>{if(ph==='run'){$('capBar').style.width=Math.round(p*100)+'%';$('capStatus').textContent=T('capRunning',{p:Math.round(p*100)});}}});
+    cap.swap=false;cap.count++;showCapDone();
+  }catch(err){
+    if(String(err.message)!=='aborted')capErr(err.message==='nobody'?T('capNobody'):err.message==='video'?T('capVideoErr'):T('capFail',{m:err.message||err}));
+    $('capWork').hidden=true;
+  }finally{$('capRun').hidden=false;$('capStop').hidden=true;cap.abort=null;}
+};
+$('capStop').onclick=()=>{if(cap.abort)cap.abort.abort();};
+function capRolesText(){if(!cap.res||cap.res.actors.length<2)return'';return T('capRoles',{r:cap.swap?T('whoFollow'):T('whoLead')});}
+function showCapDone(){
+  $('capDone').hidden=false;const r=cap.res;
+  $('capSummary').textContent=T('capSummary',{n:r.actors.length,s:r.duration.toFixed(1)});
+  $('capSwapRow').hidden=r.actors.length<2;$('capRoles').textContent=capRolesText();
+  $('capName').value=T('capDefaultName',{n:cap.count});$('capName').placeholder=T('capDefaultName',{n:cap.count});
+  $('capAdd').textContent=T('capAddTo',{d:DN(DANCES[S.dance])});
+  previewCapture();
+}
+$('capSwap').onclick=()=>{cap.swap=!cap.swap;$('capRoles').textContent=capRolesText();previewCapture();};
+function capActors(){const r=cap.res;const roles=r.actors.length>1?(cap.swap?['follow','lead']:['lead','follow']):['solo'];
+  return r.actors.map((a,i)=>({role:roles[i],f:a.f}));}
+function registerMove(key,name,dance,actors,frames,fps,opts={}){
+  const bpm=(()=>{const ks=DANCES[dance].takes.map(t=>META[t.clip]?.bpm).filter(Boolean).sort((a,b)=>a-b);return ks.length?ks[ks.length>>1]:100;})();
+  META[key]={fps,frames,bpm,off:0,pair:actors.length>1};
+  const c={...META[key],actors:actors.map(a=>({role:a.role,f:a.f}))};for(const a of c.actors)a.plants=detectPlants(a.f,frames,fps);decoded[key]=c;
+  const fig={name,en:name,desc:'',den:'',clip:key,a:0,b:(frames-1)/fps,user:true,temp:!!opts.temp,id:opts.id};
+  DANCES[dance].figs.push(fig);
+  if(opts.free)DANCES[dance].takes.push({clip:key,name,name_en:name,user:true});
+  return DANCES[dance].figs.length-1;
+}
+function removeTemp(){for(const id in DANCES){const d=DANCES[id];const i=d.figs.findIndex(f=>f.temp);if(i>=0){d.figs.splice(i,1);if(S.dance===id){if(S.fig===i)selectFree();else{if(S.fig!==null&&S.fig>i)S.fig--;renderFigs();markFig();}}}}}
+function previewCapture(){
+  removeTemp();const r=cap.res;const i=registerMove('cap_tmp_'+cap.count+(cap.swap?'s':''),T('capPreviewName'),S.dance,capActors(),r.frames,r.fps,{temp:true});
+  renderFigs();selectFig(i);
+  document.querySelector('.stage').scrollIntoView({behavior:'smooth',block:'start'});
+}
+$('capPreview').onclick=previewCapture;
+$('capDiscard').onclick=()=>{removeTemp();cap.res=null;capReset();$('capOpts').hidden=false;};
+$('capAdd').onclick=()=>{
+  if(!cap.res)return;removeTemp();const r=cap.res;const name=($('capName').value||'').trim()||T('capDefaultName',{n:cap.count});
+  const id=Date.now()+'-'+Math.random().toString(36).slice(2,6);const key='user_'+id;const actors=capActors();const free=$('capFree').checked;
+  const i=registerMove(key,name,S.dance,actors,r.frames,r.fps,{id,free});
+  saveMove({id,name,dance:S.dance,fps:r.fps,frames:r.frames,free,actors:actors.map(a=>({role:a.role,f:a.f}))});
+  renderFigs();selectFig(i);capErr('');$('capDone').hidden=true;$('capWork').hidden=true;
+  $('capSummary').textContent='';$('capStatus').textContent='';$('capFileName').textContent=T('capAdded',{d:DN(DANCES[S.dance])});cap.res=null;
+};
+function saveMove(rec){try{if(song.db)song.db.transaction('moves','readwrite').objectStore('moves').put(rec);}catch(e){}}
+async function loadMoves(){
+  if(!song.db)return;try{const all=await new Promise((res,rej)=>{const q=song.db.transaction('moves').objectStore('moves').getAll();q.onsuccess=()=>res(q.result);q.onerror=()=>rej(q.error);});
+    for(const r of all){if(!DANCES[r.dance])continue;registerMove('user_'+r.id,r.name,r.dance,r.actors.map(a=>({role:a.role,f:new Float32Array(a.f)})),r.frames,r.fps,{id:r.id,free:r.free});}
+    if(all.length&&S.dance){renderFigs();markFig();}}catch(e){}
+}
+$('userFigDel').onclick=()=>{
+  const d=DANCES[S.dance];const f=d.figs[S.fig];if(!f||!f.user)return;
+  try{if(song.db)song.db.transaction('moves','readwrite').objectStore('moves').delete(f.id);}catch(e){}
+  d.figs.splice(S.fig,1);const ti=d.takes.findIndex(t=>t.clip===f.clip);if(ti>=0)d.takes.splice(ti,1);
+  delete decoded[f.clip];selectFree();
+};
+
+/* ---------- loop ---------- */
+function resize(){const w=canvas.clientWidth,h=canvas.clientHeight,pr=renderer.getPixelRatio();if(canvas.width!==Math.floor(w*pr)||canvas.height!==Math.floor(h*pr)){renderer.setSize(w,h,false);camera.aspect=w/h;camera.updateProjectionMatrix();}}
+const clock=new THREE.Clock();const prevTarget=V();
+function tick(){
+  const dt=Math.min(clock.getDelta(),0.1);
+  if(S.playing&&S.clip)advance(dt);
+  if(S.clip)music.tick(S.t,effSpeed(),S.playing&&!song.cur);
+  song.tickUI();pip.sync();updateFootprints();updateBeats();
+  if(S.follow&&S.clip){prevTarget.copy(controls.target);controls.target.lerp(centroid,0.1);camera.position.add(_tmp.subVectors(controls.target,prevTarget));}
+  key.target.position.copy(controls.target).setY(0);key.position.set(controls.target.x+2.5,7,controls.target.z+4);
+  controls.update();resize();renderer.render(scene,camera);requestAnimationFrame(tick);
+}
+let start='salsa';try{const s=localStorage.getItem('dance-id');if(s&&DANCES[s])start=s;}catch(e){}
+$('langZh').onclick=()=>setLang('zh');$('langEn').onclick=()=>setLang('en');
+selectDance(start);applyLang();song.load().then(loadMoves);tick();
+</script>
+
+</body>
+</html>

@@ -1,3 +1,6 @@
+
+tools/cmu/
+
 # Logs
 logs
 *.log
@@ -147,3 +150,7 @@ vite.config.ts.timestamp-*
 
 # Turbo Repo
 .turbo
+
+# macOS / Python
+.DS_Store
+__pycache__/
