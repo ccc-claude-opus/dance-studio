@@ -431,7 +431,7 @@ const world=new THREE.Group();scene.add(world);
 const PAL={
   /* bright, contrasting parts so arms read against the torso and legs against the dark floor */
   lead:{top:0x16b9a0,arm:0xffcf33,leg:0x2f6ae8,shoe:0xf2f2f2,skin:0xd9b08c,skirt:null},
-  follow:{top:0xc8243f,arm:0xd9b08c,leg:0xd9b08c,shoe:0xf0b429,skin:0xe0b896,skirt:0xc8243f},
+  follow:{top:0xc8243f,arm:0xd9b08c,leg:0xb447e0,shoe:0xf0b429,skin:0xe0b896,skirt:null,flare:true,satin:true},
   solo:{top:0x6b6f78,arm:0xcfa27f,leg:0x22242a,shoe:0x1a1a1a,skin:0xcfa27f,skirt:null}
 };
 const unitCyl=(rt,rb)=>new THREE.CylinderGeometry(rt,rb,1,20,1,false);
@@ -440,7 +440,8 @@ const mat=c=>new THREE.MeshStandardMaterial({color:c,roughness:.62,metalness:.04
 function makeDancer(role){
   const p=PAL[role];const g=new THREE.Group();const parts=[];
   const add=(geo,m,spec)=>{const mesh=new THREE.Mesh(geo,m);mesh.userData.mat=m;mesh.matrixAutoUpdate=false;mesh.castShadow=true;mesh.receiveShadow=true;g.add(mesh);parts.push({mesh,...spec});};
-  const mTop=mat(p.top),mArm=mat(p.arm),mLeg=mat(p.leg),mShoe=mat(p.shoe),mSkin=mat(p.skin);
+  const mTop=mat(p.top),mArm=mat(p.arm),mShoe=mat(p.shoe),mSkin=mat(p.skin);
+  const mLeg=p.satin?new THREE.MeshStandardMaterial({color:p.leg,roughness:.3,metalness:.25}):mat(p.leg);
   const mSh=p.arm===p.skin?mTop:mArm;
   add(unitCyl(0.92,1),mTop,{seg:['hips','spine'],r:[0.15,0.10],side:'hip'});
   add(unitCyl(1,0.88),mTop,{seg:['spine','chest'],r:[0.17,0.105],side:'sh'});
@@ -454,7 +455,9 @@ function makeDancer(role){
     add(unitCyl(0.75,1),mArm,{seg:[s+'El',s+'Wr'],r:[0.042,0.042]});
     add(unitCyl(0.7,1),mSkin,{seg:[s+'Wr',s+'Hd'],r:[0.04,0.022],side:'sh'});
     add(unitCyl(0.72,1),mLeg,{seg:[s+'Hip',s+'Kn'],r:[0.085,0.085]});
-    add(unitCyl(0.68,1),mLeg,{seg:[s+'Kn',s+'An'],r:[0.06,0.06]});
+    /* flared trousers widen from the knee to the ankle, leaving the shoes visible */
+    if(p.flare)add(unitCyl(1,0.5),mLeg,{seg:[s+'Kn',s+'An'],r:[0.115,0.115]});
+    else add(unitCyl(0.68,1),mLeg,{seg:[s+'Kn',s+'An'],r:[0.06,0.06]});
     add(unitCyl(0.7,1),mShoe,{seg:[s+'An',s+'Toe'],r:[0.045,0.035],side:'hip'});
     for(const jn of [s+'Sh',s+'El',s+'Wr']) add(sphereG,jn.endsWith('Wr')?mSkin:mArm,{joint:jn,rad:jn.endsWith('Sh')?0.06:jn.endsWith('El')?0.045:0.035});
     for(const jn of [s+'Hip',s+'Kn',s+'An']) add(sphereG,jn.endsWith('An')?mShoe:mLeg,{joint:jn,rad:jn.endsWith('Hip')?0.085:jn.endsWith('Kn')?0.062:0.05});
