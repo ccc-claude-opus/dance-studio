@@ -245,6 +245,7 @@ h2.sec small{font-family:var(--f-body);font-weight:400;font-size:12px;color:var(
     </div>
     <div class="row">
       <label class="toggle"><input type="checkbox" id="mirror"> <span data-i18n="mirror">鏡像（像照鏡子跟著跳）</span></label>
+      <label class="toggle"><input type="checkbox" id="seeThrough" checked> <span data-i18n="seeThrough">半透明（看得到被擋住的手腳）</span></label>
       <label class="toggle"><input type="checkbox" id="follow" checked> <span data-i18n="camFollow">鏡頭跟隨</span></label>
     </div>
 
@@ -355,7 +356,7 @@ const $=id=>document.getElementById(id);
 const I18N={
 zh:{figure:'人物',chMannequin:'人偶',chReal:'擬真人物',chLoading:'載入擬真人物…',chFail:'擬真人物載入失敗，先用人偶顯示',chNote:'擬真人物會照同樣的關節軌跡擺出姿勢；因為身材比例和人偶不同，雙人牽手的位置可能略有落差。',capTitle:'從影片抓動作',camTitle:'相機即時錄影',camIntro:'用電腦或手機的相機，邊跳邊看辨識出來的骨架；按錄影會同時錄下影像和骨架，可以回放，也能把動作放上舞台用 3D 舞者重播。辨識都在你的裝置上進行。',camOpen:'開啟相機',camClose:'關閉相機',camMirror:'鏡像',camRec:'● 開始錄影',camRecStop:'■ 停止錄影',camStatusLive:'{fps} fps · 偵測到 {n} 人',camRecording:'● 錄影中 {s}',camNoCam:'無法開啟相機：請允許瀏覽器使用相機，並用 https 或 localhost 開啟這個頁面。',camNoRec:'這個瀏覽器不支援錄影。',camLoading:'載入姿勢辨識模型…',camShowVideo:'顯示影像',camToStage:'把動作放上舞台',camSave:'存到伺服器',camSaving:'存檔中…',camSaved:'已存到伺服器。',camSaveFail:'存檔失敗：{m}',camHide:'收起',camList:'我的錄影',camNone:'還沒有錄影。',camLocal:'這次',camOnServer:'伺服器',camDel:'刪除這段錄影',camDelAsk:'確定刪除「{name}」？',camDefaultName:'錄影 {d}',camNoPose:'這段錄影沒有辨識到人，無法放上舞台。',camServerOn:'已連上伺服器：錄影可以存檔，下次開啟還在。',camServerOff:'沒有連上伺服器：錄影可以回放，但關閉頁面就會消失。要存檔請在專案資料夾執行 python3 server.py。',camPlayInfo:'{s} 秒 · 骨架 {n} 格',camLoadFail:'載入錄影失敗：{m}',capBeta:'實驗功能',capIntro:'選一段舞蹈影片，頁面會在你的裝置上辨識人體姿勢，轉成 3D 動作；影片不會上傳。拍攝時全身入鏡、光線充足、鏡頭固定，效果最好。',capPick:'選擇舞蹈影片',capPeople:'人數',capFrom:'從',capTo:'到',capSec:'秒（一次最多 60 秒）',capRun:'開始分析',capStop:'停止',capLoading:'載入姿勢辨識模型…（第一次約 15 MB）',capRunning:'分析中 {p}%',capSwap:'交換男女',capPreview:'在舞台上預覽',capAddTo:'加入「{d}」的橋段',capFree:'也放進「自由示範」連續播放',capDiscard:'捨棄',capDelete:'刪除這個我的動作',capSummary:'抓到 {n} 位舞者、{s} 秒的動作。先預覽，滿意再加入示範。',capRoles:'左邊的人是{r}',capDefaultName:'我的動作 {n}',capAdded:'已加入「{d}」的橋段。',capNobody:'影片裡找不到清楚的人體，換一段全身入鏡的影片試試。',capFail:'分析失敗：{m}',capVideoErr:'這個影片格式無法播放，請換 MP4 檔。',mineTag:'我的影片',mineDesc:'從你的影片抓出來的動作',capPreviewName:'影片動作預覽',capDur:'影片長 {s} 秒',back:'背後',feet:'看腳',playMode:'播放',cont:'連續',stepMode:'一步一停',slowLoop:'0.5× 慢速循環',footprints:'地板腳印',beatsShow:'大字拍數',clickSound:'拍子提示音',nextStep:'下一步',stepNote:'每踩一步會自動停住，按播放鍵走下一步。',feetNote:'腳印上的數字是落地的拍數，越淡的是越後面的步。',mocapBeat:'真人錄製的拍數是依舞步節奏估算的，可能差半拍。',focus:'焦點',focusBoth:'兩人',focusLead:'男生',focusFollow:'女生',focusNote:'焦點在{who}：另一位舞者以淡色骨架顯示，鏡頭跟著{who}。',whoLead:'男生',whoFollow:'女生',videos:'真人影片',vidNote:'影片會在 YouTube 開啟，看完切回這裡就能對照 3D 示範。這個頁面不能直接內嵌其他網站的影片。',addVideo:'＋ 播放我手機裡的影片',closeVideo:'關閉影片',thisDance:'這支舞',otherSocial:'其他社交舞',zhVid:'中文',enVid:'英文',myVideoNote:'影片和 3D 舞者一起播放暫停，速度跟著速度滑桿，勾鏡像時影片也會左右翻轉。',stage:'舞台',view:'視角',front:'正面',side:'側面',top:'俯視',language:'語言',dances:'舞種',position:'播放位置',demo:'示範',demoCount:'示範人數',solo:'單人',duo:'雙人',role:'角色',
  leadPart:'男步',followPart:'女步',speed:'速度',speedAria:'播放速度',music:'音樂',addSong:'＋ 加入我的歌曲',songTempo:'歌曲速度',tap:'跟著拍子點我',sync:'舞步配合歌曲節拍（自動調整舞速）',
- volume:'音量',mirror:'鏡像（像照鏡子跟著跳）',camFollow:'鏡頭跟隨',figures:'經典橋段',loop:'橋段重複播放',loadingDancers:'載入舞者…',loadingChar:'載入擬真角色…',
+ volume:'音量',mirror:'鏡像（像照鏡子跟著跳）',seeThrough:'半透明（看得到被擋住的手腳）',camFollow:'鏡頭跟隨',figures:'經典橋段',loop:'橋段重複播放',loadingDancers:'載入舞者…',loadingChar:'載入擬真角色…',
  loadFail:'資料載入失敗，請重新整理頁面再試',charFail:'角色載入失敗，請重新整理頁面再試',badgeChar:'MOCAP · 擬真角色',badgeSyn:'生成 · {bpm} BPM',
  freeDesc:'依序播放全部 {n} 段，不剪輯。{src}',freeDescSyn:'連續播放整套舞步。{src}',free:'自由示範',fullOne:'完整一段',takesSecs:'{n} 段 · {s} 秒',secs:'{s} 秒',
  genPartner:'生成舞伴',synthTag:'生成動作',pairTag:'雙人',figCount:'{n} 個',onlyOne:'這支舞只有一段完整錄製',
@@ -372,7 +373,7 @@ zh:{figure:'人物',chMannequin:'人偶',chReal:'擬真人物',chLoading:'載入
  src1:'動作來源：',src2:'；森巴角色來自 Mixamo，單足旋轉來自 three.js 範例資料。'},
 en:{figure:'Dancers',chMannequin:'Mannequin',chReal:'Realistic',chLoading:'Loading realistic dancers…',chFail:'Couldn’t load the realistic dancers, showing mannequins instead',chNote:'Realistic dancers follow the same joint paths; their body proportions differ from the mannequins, so joined hands may not line up exactly.',capTitle:'Capture moves from video',camTitle:'Live camera recording',camIntro:'Dance in front of your computer or phone camera and watch the detected skeleton live. Recording keeps both the video and the skeleton so you can play them back, or replay the motion with the 3D dancers on stage. Detection runs on your device.',camOpen:'Open camera',camClose:'Close camera',camMirror:'Mirror',camRec:'● Record',camRecStop:'■ Stop recording',camStatusLive:'{fps} fps · {n} person(s) detected',camRecording:'● Recording {s}',camNoCam:'Couldn’t open the camera. Allow camera access and open this page over https or localhost.',camNoRec:'This browser can’t record video.',camLoading:'Loading the pose model…',camShowVideo:'Show video',camToStage:'Put the motion on stage',camSave:'Save to server',camSaving:'Saving…',camSaved:'Saved to the server.',camSaveFail:'Save failed: {m}',camHide:'Close',camList:'My recordings',camNone:'No recordings yet.',camLocal:'This visit',camOnServer:'Server',camDel:'Delete this recording',camDelAsk:'Delete “{name}”?',camDefaultName:'Recording {d}',camNoPose:'No one was detected in this recording, so it can’t go on stage.',camServerOn:'Connected to the server: recordings are saved and will be here next time.',camServerOff:'No server: you can play recordings back, but they disappear when you close the page. To save them, run python3 server.py in the project folder.',camPlayInfo:'{s} s · {n} skeleton frames',camLoadFail:'Couldn’t load the recording: {m}',capBeta:'Experimental',capIntro:'Pick a dance video and the page detects body poses on your device and turns them into 3D motion; the video is never uploaded. Works best with the whole body in frame, good light and a fixed camera.',capPick:'Choose a dance video',capPeople:'Dancers',capFrom:'From',capTo:'to',capSec:'s (up to 60 s at a time)',capRun:'Analyze',capStop:'Stop',capLoading:'Loading the pose model… (about 15 MB the first time)',capRunning:'Analyzing {p}%',capSwap:'Swap lead and follow',capPreview:'Preview on stage',capAddTo:'Add to {d} figures',capFree:'Also include in the free demo',capDiscard:'Discard',capDelete:'Delete this move of mine',capSummary:'Captured {n} dancer(s), {s} s of motion. Preview it, then add it if you like it.',capRoles:'The dancer on the left is the {r}',capDefaultName:'My move {n}',capAdded:'Added to the {d} figures.',capNobody:'No clear person found. Try a video with the whole body in frame.',capFail:'Analysis failed: {m}',capVideoErr:'This video format can’t be played. Try an MP4 file.',mineTag:'My video',mineDesc:'Captured from your video',capPreviewName:'Video capture preview',capDur:'Video is {s} s long',back:'Behind',feet:'Feet',playMode:'Play',cont:'Continuous',stepMode:'Step by step',slowLoop:'0.5× slow loop',footprints:'Footprints',beatsShow:'Beat count',clickSound:'Beat click',nextStep:'Next step',stepNote:'Playback stops after every step; press play for the next one.',feetNote:'The number on each footprint is the count it lands on; fainter prints come later.',mocapBeat:'Counts for real recordings are estimated from the steps and may be off by half a beat.',focus:'Focus',focusBoth:'Both',focusLead:'Lead',focusFollow:'Follow',focusNote:'Focused on the {who}: the partner is shown as a faint skeleton and the camera follows the {who}.',whoLead:'lead',whoFollow:'follow',videos:'Real dancer videos',vidNote:'Videos open on YouTube; switch back here to compare with the 3D demo. This page can’t embed videos from other sites.',addVideo:'＋ Play a video from my device',closeVideo:'Close video',thisDance:'This dance',otherSocial:'Other social dances',zhVid:'Chinese',enVid:'English',myVideoNote:'Your video plays and pauses with the 3D dancers, follows the speed slider, and flips when Mirror is on.',stage:'Stage',view:'View',front:'Front',side:'Side',top:'Top',language:'Language',dances:'Dances',position:'Position',demo:'Show',demoCount:'Number of dancers',solo:'Solo',duo:'Couple',role:'Part',
  leadPart:'Lead',followPart:'Follow',speed:'Speed',speedAria:'Playback speed',music:'Music',addSong:'＋ Add my songs',songTempo:'Song tempo',tap:'Tap to the beat',sync:'Match the steps to the song’s beat (adjusts dance speed)',
- volume:'Volume',mirror:'Mirror (dance along as if facing a mirror)',camFollow:'Camera follows',figures:'Figures',loop:'Repeat figure',loadingDancers:'Loading dancers…',loadingChar:'Loading character…',
+ volume:'Volume',mirror:'Mirror (dance along as if facing a mirror)',seeThrough:'See-through (show hidden arms and legs)',camFollow:'Camera follows',figures:'Figures',loop:'Repeat figure',loadingDancers:'Loading dancers…',loadingChar:'Loading character…',
  loadFail:'Couldn’t load the data. Reload the page to try again.',charFail:'Couldn’t load the character. Reload the page to try again.',badgeChar:'MOCAP · Character',badgeSyn:'GENERATED · {bpm} BPM',
  freeDesc:'Plays all {n} recordings in order, uncut. {src}',freeDescSyn:'Plays the whole routine. {src}',free:'Free demo',fullOne:'One full dance',takesSecs:'{n} takes · {s} s',secs:'{s} s',
  genPartner:'Generated partner',synthTag:'Generated',pairTag:'Couple',figCount:'{n}',onlyOne:'This dance has one full recording',
@@ -470,6 +471,14 @@ function makeDancer(role){
 const GHOST={lead:new THREE.MeshBasicMaterial({color:0x9db0e6,transparent:true,opacity:0.42,depthWrite:false}),
   follow:new THREE.MeshBasicMaterial({color:0xf0a3b2,transparent:true,opacity:0.42,depthWrite:false}),
   solo:new THREE.MeshBasicMaterial({color:0xcccccc,transparent:true,opacity:0.42,depthWrite:false})};
+/* see-through dancers: every body part is drawn semi-transparent, so a partner's limbs behind it stay visible */
+let SEE=true;try{SEE=localStorage.getItem('see-through')!=='0';}catch(e){}
+function seeMat(m){if(m.userData.see===SEE)return;m.userData.see=SEE;m.transparent=SEE;m.opacity=SEE?0.72:1;m.needsUpdate=true;}
+function seeRoot(root){root.traverse(o=>{if(o.isMesh)[].concat(o.material).forEach(seeMat);});}
+function applySeeThrough(){
+  for(const d of S.dancers){for(const pt of d.parts)seeMat(pt.mesh.userData.mat);if(d.char)seeRoot(d.char.root);}
+  if(samba)seeRoot(samba.root);
+}
 function setGhost(d,on){
   if(d.ghost===on)return;d.ghost=on;if(typeof applyCharVis==='function')setTimeout(applyCharVis,0);
   for(const pt of d.parts){const m=pt.mesh;m.material=on?GHOST[d.role]:m.userData.mat;m.castShadow=!on;m.receiveShadow=!on;m.renderOrder=on?2:0;if(pt.skirt)m.visible=!on;}
@@ -594,7 +603,7 @@ async function attachChars(){
   if(!S.charMode)return;
   try{$('loading').hidden=false;$('loading').textContent=T('chLoading');
     for(const d of S.dancers){if(d.char)continue;d.char=await makeChar(d.role==='solo'?'solo':d.role,d.role==='follow'?0.95:1);}
-    $('loading').hidden=true;
+    $('loading').hidden=true;applySeeThrough();
   }catch(e){$('loading').textContent=T('chFail');setTimeout(()=>$('loading').hidden=true,2500);S.charMode=false;markChar();}
   applyCharVis();applyFrame();
 }
@@ -687,7 +696,7 @@ function rebuildDancers(){
   for(const d of S.dancers){world.remove(d.group);if(d.char)world.remove(d.char.root);}S.dancers=[];
   if(!S.clip||S.clipKey==='samba')return;
   for(const i of visibleActors()){const r=S.clip.actors[i].role;const d=makeDancer(r==='solo'?'solo':r);d.idx=i;S.dancers.push(d);}
-  applyFocus();
+  applyFocus();applySeeThrough();
   if(S.charMode)attachChars();
 }
 function clipDur(){return S.clipKey==='samba'?(samba?samba.dur:1):S.clip.frames/S.clip.fps;}
@@ -699,7 +708,7 @@ async function setClip(k,startT,a,b){
     $('loading').hidden=false;$('loading').textContent=T('loadingChar');
     try{await loadSamba();}catch(e){$('loading').textContent=T('charFail');return;}
     if(tok!==S.token)return;
-    if(!world.children.includes(samba.root))world.add(samba.root);samba.root.visible=true;
+    if(!world.children.includes(samba.root))world.add(samba.root);samba.root.visible=true;applySeeThrough();
     S.clip={fps:30,frames:Math.round(samba.dur*30),actors:[]};
   } else {
     const d=DANCES[S.dance];
@@ -870,6 +879,8 @@ $('rLead').onclick=()=>{S.role='lead';rebuildDancers();updateModeUI();applyFrame
 $('rFollow').onclick=()=>{S.role='follow';rebuildDancers();updateModeUI();applyFrame();};
 $('mirror').onchange=e=>{S.mirror=e.target.checked;world.scale.x=S.mirror?-1:1;applyFrame();};
 $('follow').onchange=e=>{S.follow=e.target.checked;};
+$('seeThrough').checked=SEE;
+$('seeThrough').onchange=e=>{SEE=e.target.checked;try{localStorage.setItem('see-through',SEE?'1':'0');}catch(err){}applySeeThrough();};
 for(const [id,k] of [['camFront','front'],['camBack','back'],['camSide','side'],['camTop','top'],['camFeet','feet']])$(id).onclick=()=>{snapCam(k);markView();};
 function markView(){for(const [id,k] of [['camFront','front'],['camBack','back'],['camSide','side'],['camTop','top'],['camFeet','feet']])$(id).setAttribute('aria-pressed',String((S.view||'front')===k));}
 markView();
